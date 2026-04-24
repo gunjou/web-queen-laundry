@@ -10,7 +10,7 @@ const StatsGrid = ({ stats }) => {
         >
           <div className="flex justify-between items-center">
             <div className="p-2 rounded-lg bg-gray-100 dark:bg-slate-700">
-              <s.icon size={18} />
+              <s.icon size={18} className={s.color} />
             </div>
 
             <span

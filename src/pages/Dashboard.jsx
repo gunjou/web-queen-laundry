@@ -15,7 +15,7 @@ import {
 } from "../data/dashboardData";
 
 const Dashboard = () => {
-  const [filter, setFilter] = useState("Hari Ini");
+  const [filter, setFilter] = useState("Minggu");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -43,7 +43,7 @@ const Dashboard = () => {
         {/* CHART */}
         <div className="lg:col-span-2">
           <RevenueChart
-            data={chartData}
+            data={chartData[filter]}
             filter={filter}
             setFilter={setFilter}
           />

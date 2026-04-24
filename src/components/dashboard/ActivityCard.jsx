@@ -16,8 +16,10 @@ const ActivityCard = ({ activities }) => {
             </div>
 
             <div>
-              <p className="text-sm font-medium">{a.title}</p>
-              <p className="text-xs text-gray-400">{a.time}</p>
+              <p className="text-sm font-medium dark:text-white">{a.title}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-400">
+                {a.time}
+              </p>
             </div>
           </div>
         ))}

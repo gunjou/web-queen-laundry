@@ -14,7 +14,7 @@ const RevenueChart = ({ data, filter, setFilter }) => {
     <div className="bg-white dark:bg-slate-800 p-5 rounded-3xl border border-gray-100 dark:border-slate-700 shadow-sm">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
         <div>
-          <h3 className="font-bold text-sm md:text-base">
+          <h3 className="font-bold text-sm md:text-base dark:text-white text-queen-navy">
             Statistik Pendapatan
           </h3>
           <p className="text-xs text-gray-400">
@@ -32,8 +32,8 @@ const RevenueChart = ({ data, filter, setFilter }) => {
               onClick={() => setFilter(f)}
               className={`px-3 py-1.5 text-xs rounded-lg transition-all ${
                 filter === f
-                  ? "bg-queen-navy text-white shadow"
-                  : "bg-gray-100 dark:bg-slate-700"
+                  ? "bg-queen-navy text-white dark:text-white shadow"
+                  : "bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-600/50"
               }`}
             >
               {f}

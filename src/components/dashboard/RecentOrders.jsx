@@ -20,8 +20,8 @@ const RecentOrders = ({ orders }) => {
                 key={o.id}
                 className="hover:bg-gray-50 dark:hover:bg-slate-700/40 transition cursor-pointer"
               >
-                <td className="p-3 font-semibold">{o.id}</td>
-                <td>{o.customer}</td>
+                <td className="p-3 font-semibold dark:text-white">{o.id}</td>
+                <td className="dark:text-white">{o.customer}</td>
 
                 <td>
                   <span
@@ -54,11 +54,17 @@ const RecentOrders = ({ orders }) => {
             className="bg-gray-50 dark:bg-slate-700/40 rounded-xl p-4 border"
           >
             <div className="flex justify-between">
-              <span className="font-bold">#{o.id}</span>
-              <span className="text-xs">{o.status}</span>
+              <span className="font-bold dark:text-white">#{o.id}</span>
+              <td>
+                <span
+                  className={`px-2 py-1 text-xs rounded ${statusMap[o.status]}`}
+                >
+                  {o.status}
+                </span>
+              </td>
             </div>
 
-            <p className="text-sm mt-1">{o.customer}</p>
+            <p className="text-sm mt-1 dark:text-white">{o.customer}</p>
 
             <p
               className={`text-xs mt-1 ${
