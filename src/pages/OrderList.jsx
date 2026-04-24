@@ -96,7 +96,7 @@ const OrderList = () => {
             >
               {status}
             </button>
-          ),
+          )
         )}
       </div>
 
@@ -149,7 +149,11 @@ const OrderList = () => {
                   <div className="flex flex-col">
                     <span className="text-sm font-black">{order.total}</span>
                     <span
-                      className={`text-[10px] font-bold ${order.payment === "Lunas" ? "text-green-500" : "text-red-500"}`}
+                      className={`text-[10px] font-bold ${
+                        order.payment === "Lunas"
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }`}
                     >
                       {order.payment}
                     </span>
@@ -222,7 +226,11 @@ const OrderList = () => {
                   {order.total}
                 </p>
                 <p
-                  className={`text-[10px] font-bold ${order.payment === "Lunas" ? "text-green-500" : "text-red-500 animate-pulse"}`}
+                  className={`text-[10px] font-bold ${
+                    order.payment === "Lunas"
+                      ? "text-green-500"
+                      : "text-red-500 animate-pulse"
+                  }`}
                 >
                   {order.payment}
                 </p>
