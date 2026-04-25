@@ -12,7 +12,11 @@ import OrderList from "./pages/OrderList";
 import Customers from "./pages/Customers";
 import Services from "./pages/Services";
 import LandingPage from "./pages/LandingPage/Index";
-import DashboardUser from "./pages/DashboardUser";
+
+import DashboardUser from "./pages/user/DashboardUser";
+import Orders from "./pages/user/Orders";
+import ServicesUser from "./pages/user/Services";
+import ProfileUser from "./pages/user/Profile";
 
 function App() {
   const [darkMode, setDarkMode] = useState(false);
@@ -44,6 +48,9 @@ function App() {
           <Route path="orders" element={<OrderList />} />
           <Route path="customers" element={<Customers />} />
           <Route path="services" element={<Services />} />
+          <Route path="user/orders" element={<Orders />} />
+          <Route path="user/services" element={<ServicesUser />} />
+          <Route path="user/profile" element={<ProfileUser />} />
         </Route>
       </Routes>
     </Router>

@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Plus, Shirt, Truck, Clock, CheckCircle2, MapPin } from "lucide-react";
 
-import OrderModal from "../components/modal/OrderModal";
+import OrderModal from "../../components/modal/OrderModal";
 
 /* =========================
    SERVICES (COLOR SYSTEM)
@@ -39,6 +40,7 @@ const SERVICES = [
 
 const DashboardUser = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const activeOrder = {
     id: "#QL-2026-001",
@@ -50,13 +52,27 @@ const DashboardUser = () => {
   return (
     <div className="min-h-screen pb-28">
       {/* HEADER */}
-      <div className="px-4 pt-4 flex items-center justify-between">
+      <div className="px-4 pt-2 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
             Halo, Budi 👋
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">
             Mau laundry apa hari ini?
+          </p>
+        </div>
+
+        {/* DATE */}
+        <div className="text-right">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            {new Date().toLocaleDateString("id-ID", {
+              weekday: "short",
+              day: "numeric",
+              month: "short",
+            })}
+          </p>
+          <p className="text-[10px] text-slate-400">
+            {new Date().getFullYear()}
           </p>
         </div>
       </div>
@@ -80,6 +96,7 @@ const DashboardUser = () => {
         <h2 className="text-sm font-semibold mb-2 text-slate-700 dark:text-slate-200">
           Layanan Tersedia
         </h2>
+
         <div className="grid grid-cols-4 gap-3 px-4">
           {SERVICES.map((item) => (
             <div
@@ -102,15 +119,27 @@ const DashboardUser = () => {
       </div>
 
       {/* =========================
-          ACTIVE ORDER (2 COL ONLY HERE)
+          ACTIVE ORDER
       ========================= */}
       <div className="px-4 mt-6">
-        <h2 className="text-sm font-semibold mb-2 text-slate-700 dark:text-slate-200">
-          Order Aktif
-        </h2>
+        {/* HEADER + LINK */}
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+            Order Aktif
+          </h2>
+
+          <button
+            onClick={() =>
+              navigate("/user/orders", { state: { tab: "aktif" } })
+            }
+            className="text-xs text-indigo-600 font-medium hover:underline transition"
+          >
+            Lihat Semua
+          </button>
+        </div>
 
         <div className="md:grid md:grid-cols-3 md:gap-4">
-          {/* LEFT: TRACKING */}
+          {/* LEFT */}
           <div className="md:col-span-2">
             <div className="bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-500 text-white p-4 rounded-3xl shadow-xl">
               <p className="text-xs opacity-80">{activeOrder.id}</p>
@@ -150,7 +179,7 @@ const DashboardUser = () => {
             </div>
           </div>
 
-          {/* RIGHT: ACTION CARD (DESKTOP ONLY) */}
+          {/* RIGHT (DESKTOP) */}
           <div className="hidden md:block">
             <div className="bg-white dark:bg-slate-800 p-5 rounded-3xl shadow-md border border-slate-200/50 dark:border-slate-700/50 h-full flex flex-col justify-between">
               <div>
@@ -176,11 +205,25 @@ const DashboardUser = () => {
         </div>
       </div>
 
-      {/* HISTORY */}
+      {/* =========================
+          HISTORY
+      ========================= */}
       <div className="px-4 mt-6">
-        <h2 className="text-sm font-semibold mb-2 text-slate-700 dark:text-slate-200">
-          Riwayat
-        </h2>
+        {/* HEADER + LINK */}
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+            Riwayat
+          </h2>
+
+          <button
+            onClick={() =>
+              navigate("/user/orders", { state: { tab: "riwayat" } })
+            }
+            className="text-xs text-indigo-600 font-medium hover:underline transition"
+          >
+            Lihat Semua
+          </button>
+        </div>
 
         <div className="space-y-2">
           {[1, 2].map((_, i) => (
@@ -196,13 +239,14 @@ const DashboardUser = () => {
                   Selesai
                 </p>
               </div>
+
               <CheckCircle2 className="text-emerald-500" size={18} />
             </div>
           ))}
         </div>
       </div>
 
-      {/* FLOAT BUTTON (MOBILE ONLY) */}
+      {/* FLOAT BUTTON */}
       <div className="fixed bottom-24 right-5 md:hidden">
         <button
           onClick={() => setIsModalOpen(true)}

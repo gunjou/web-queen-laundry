@@ -8,7 +8,7 @@ const Navbar = ({ darkMode, setDarkMode }) => {
     <nav className="sticky top-0 z-40 bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4 md:px-6 py-3 flex justify-between items-center shadow-sm">
       <div className="flex items-center gap-3">
         {/* Logo muncul di navbar hanya saat mobile */}
-        <div className="lg:hidden bg-white p-1.5 rounded-lg shrink-0 shadow-sm border border-gray-100 ring-1 ring-black/5">
+        <div className="lg:hidden bg-white dark:bg-slate-700 border border-gray-100 dark:border-slate-600 p-1.5 rounded-lg shrink-0 shadow-sm ring-1 ring-black/5">
           <img src={LogoImg} alt="Q" className="h-7 w-7 object-contain" />
         </div>
         {/* <h2 className="font-bold text-queen-navy dark:text-white text-sm md:text-base">
