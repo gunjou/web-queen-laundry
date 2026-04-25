@@ -10,6 +10,7 @@ import {
   Wallet,
   Hash,
 } from "lucide-react";
+import { type } from "@testing-library/user-event/dist/type";
 
 const OrderList = () => {
   const [filterStatus, setFilterStatus] = useState("Semua");
@@ -18,6 +19,7 @@ const OrderList = () => {
     {
       id: "QN-001",
       customer: "Aniki",
+      type: "Reguler",
       service: "Cuci Setrika",
       qty: "5.0 kg",
       total: "Rp 35.000",
@@ -29,6 +31,7 @@ const OrderList = () => {
     {
       id: "QN-002",
       customer: "Budi",
+      type: "Pickup",
       service: "Cuci Kering",
       qty: "3.2 kg",
       total: "Rp 24.000",
@@ -40,6 +43,7 @@ const OrderList = () => {
     {
       id: "QN-003",
       customer: "Siska",
+      type: "Pickup & Delivery",
       service: "Express 6 Jam",
       qty: "2.0 kg",
       total: "Rp 30.000",
@@ -106,6 +110,7 @@ const OrderList = () => {
           <thead className="bg-gray-50 dark:bg-slate-900/50 text-[10px] uppercase tracking-widest text-gray-400 font-bold">
             <tr>
               <th className="px-8 py-5">Info Order</th>
+              <th className="px-8 py-5">Jenis</th>
               <th className="px-8 py-5">Layanan</th>
               <th className="px-8 py-5">Waktu & Est</th>
               <th className="px-8 py-5">Total</th>
@@ -130,8 +135,24 @@ const OrderList = () => {
                   </div>
                 </td>
                 <td className="px-8 py-6">
+                  <span
+                    className={`flex flex-col text-sm font-bold uppercase ${
+                      order.type === "Reguler"
+                        ? "text-green-600"
+                        : order.type === "Pickup"
+                        ? "text-blue-600"
+                        : "text-purple-600"
+                    }`}
+                  >
+                    {order.type}
+                  </span>
+                </td>
+
+                <td className="px-8 py-6">
                   <div className="flex flex-col">
-                    <span className="text-sm font-bold">{order.service}</span>
+                    <span className="text-sm font-bold dark:text-white">
+                      {order.service}
+                    </span>
                     <span className="text-xs text-gray-400">{order.qty}</span>
                   </div>
                 </td>
@@ -147,7 +168,9 @@ const OrderList = () => {
                 </td>
                 <td className="px-8 py-6">
                   <div className="flex flex-col">
-                    <span className="text-sm font-black">{order.total}</span>
+                    <span className="text-sm font-black dark:text-white">
+                      {order.total}
+                    </span>
                     <span
                       className={`text-[10px] font-bold ${
                         order.payment === "Lunas"
@@ -170,7 +193,7 @@ const OrderList = () => {
                     {order.status}
                   </span>
                 </td>
-                <td className="px-8 py-6 text-right">
+                <td className="px-8 py-6 text-right dark:text-white">
                   <button className="p-2 hover:bg-queen-navy hover:text-white rounded-xl transition-all">
                     <ChevronRight size={20} />
                   </button>

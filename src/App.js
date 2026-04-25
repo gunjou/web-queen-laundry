@@ -11,6 +11,8 @@ import Layout from "./components/Layout";
 import OrderList from "./pages/OrderList";
 import Customers from "./pages/Customers";
 import Services from "./pages/Services";
+import LandingPage from "./pages/LandingPage/Index";
+import DashboardUser from "./pages/DashboardUser";
 
 function App() {
   const [darkMode, setDarkMode] = useState(false);
@@ -26,22 +28,22 @@ function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<LandingPage />} />
+
         <Route
           path="/login"
           element={<Login darkMode={darkMode} setDarkMode={setDarkMode} />}
         />
 
-        {/* Halaman yang butuh Sidebar/Navbar dibungkus Layout */}
         <Route
           path="/"
           element={<Layout darkMode={darkMode} setDarkMode={setDarkMode} />}
         >
-          <Route index element={<Navigate to="/dashboard" />} />
           <Route path="dashboard" element={<Dashboard />} />
+          <Route path="user/dashboard" element={<DashboardUser />} />
           <Route path="orders" element={<OrderList />} />
           <Route path="customers" element={<Customers />} />
           <Route path="services" element={<Services />} />
-          {/* Tambahkan route lain di sini nanti */}
         </Route>
       </Routes>
     </Router>
