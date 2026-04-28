@@ -47,6 +47,8 @@ const Login = ({ darkMode, setDarkMode }) => {
       }).then(() => {
         if (foundUser.role === "admin") {
           navigate("/dashboard");
+        } else if (foundUser.role === "staff") {
+          navigate("/staff/dashboard");
         } else {
           navigate("/user/dashboard");
         }

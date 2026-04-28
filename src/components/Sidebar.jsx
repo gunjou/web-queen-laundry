@@ -8,6 +8,7 @@ import {
   Settings,
   BarChart3,
   LogOut,
+  IdCardLanyard,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 
@@ -33,6 +34,7 @@ const menuSections = {
       title: "MASTER DATA",
       items: [
         { name: "Customer", icon: Users, path: "/customers" },
+        { name: "Karyawan", icon: IdCardLanyard, path: "/karyawan" },
         { name: "Layanan", icon: Package, path: "/services" },
       ],
     },
@@ -40,7 +42,30 @@ const menuSections = {
       title: "SYSTEM",
       items: [
         { name: "Laporan", icon: BarChart3, path: "/reports" },
-        { name: "Pengaturan", icon: Settings, path: "/settings" },
+        // { name: "Pengaturan", icon: Settings, path: "/settings" },
+      ],
+    },
+  ],
+
+  staff: [
+    {
+      title: "MAIN",
+      items: [
+        { name: "Dashboard", icon: LayoutDashboard, path: "/staff/dashboard" },
+      ],
+    },
+    {
+      title: "TRANSAKSI",
+      items: [
+        { name: "Order", icon: ShoppingCart, path: "/staff/orders" },
+        { name: "Pembayaran", icon: CreditCard, path: "/staff/payments" },
+      ],
+    },
+    {
+      title: "MASTER DATA",
+      items: [
+        { name: "Customer", icon: Users, path: "/staff/customers" },
+        { name: "Layanan", icon: Package, path: "/services" },
       ],
     },
   ],
@@ -98,9 +123,7 @@ const Sidebar = () => {
             <p className="font-semibold text-sm text-gray-800 dark:text-white">
               Queen Laundry
             </p>
-            <p className="text-xs text-gray-400">
-              {role === "admin" ? "Admin Panel" : "User Panel"}
-            </p>
+            <p className="text-xs text-gray-400">Jasa Cuci Antar Jemput</p>
           </div>
         </div>
 
