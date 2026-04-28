@@ -90,9 +90,9 @@ const AdminReports = () => {
   return (
     <div className="min-h-screen pb-28">
       {/* HEADER */}
-      <div className="px-4 pt-2 flex justify-between items-start">
+      <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+          <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
             Laporan
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">

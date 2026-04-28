@@ -65,8 +65,12 @@ const menuSections = {
       title: "MASTER DATA",
       items: [
         { name: "Customer", icon: Users, path: "/staff/customers" },
-        { name: "Layanan", icon: Package, path: "/services" },
+        { name: "Layanan", icon: Package, path: "/staff/services" },
       ],
+    },
+    {
+      title: "AKUN",
+      items: [{ name: "Profile", icon: Users, path: "/staff/profile" }],
     },
   ],
 

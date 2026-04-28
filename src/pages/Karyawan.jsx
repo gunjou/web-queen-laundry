@@ -2,147 +2,196 @@ import React, { useState } from "react";
 import {
   Search,
   UserPlus,
-  Phone,
-  MapPin,
-  MessageCircle,
-  MoreVertical,
   ChevronRight,
-  User,
-  Mail,
-  History,
+  Clock,
+  Wallet,
+  MessageCircle,
 } from "lucide-react";
 
 const Karyawan = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const customers = [
+  const employees = [
     {
-      id: "CUST-001",
+      id: "EMP-001",
       name: "Aniki",
-      phone: "081234567890",
-      address: "Jl. Pendidikan No. 15, Mataram",
-      totalOrders: 12,
-      lastOrder: "2 hari yang lalu",
-      status: "Loyal",
+      phone: "6281234567890",
+      role: "Kasir",
+      shift: "Pagi",
+      salary: 2500000,
+      status: "Aktif",
     },
     {
-      id: "CUST-002",
+      id: "EMP-002",
       name: "Budi Santoso",
-      phone: "087765432100",
-      address: "Perumahan Griya Asri Blok C-12",
-      totalOrders: 5,
-      lastOrder: "1 minggu yang lalu",
-      status: "Reguler",
+      phone: "6287765432100",
+      role: "Operator",
+      shift: "Siang",
+      salary: 2300000,
+      status: "Aktif",
     },
     {
-      id: "CUST-003",
+      id: "EMP-003",
       name: "Siska Putri",
-      phone: "081900887766",
-      address: "Kost Hijau, Sekitar Kampus UNRAM",
-      totalOrders: 1,
-      lastOrder: "Baru Terdaftar",
-      status: "Baru",
+      phone: "6281900887766",
+      role: "Kurir",
+      shift: "Flexible",
+      salary: 2000000,
+      status: "Training",
     },
   ];
 
+  const filtered = employees.filter((emp) =>
+    emp.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const shiftBadge = (shift) => {
+    switch (shift) {
+      case "Pagi":
+        return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
+      case "Siang":
+        return "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400";
+      case "Sore":
+        return "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400";
+      default:
+        return "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300";
+    }
+  };
+
+  const roleBadge = (role) => {
+    switch (role) {
+      case "Kasir":
+        return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400";
+      case "Operator":
+        return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
+      case "Kurir":
+        return "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400";
+      default:
+        return "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300";
+    }
+  };
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-24 lg:pb-10">
-      {/* Header & Add Button */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+    <div className="space-y-6 pb-24 lg:pb-10">
+      {/* HEADER */}
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-black text-queen-navy dark:text-white">
-            Data Karyawan
+          <h1 className="text-xl font-black text-queen-navy dark:text-white">
+            Data Staff
           </h1>
-          <p className="text-sm text-gray-500">
-            Kelola informasi dan riwayat pelanggan
+          <p className="text-xs text-gray-500">
+            Kelola karyawan & operasional laundry
           </p>
         </div>
 
-        <button className="flex items-center justify-center gap-2 px-6 py-3 bg-queen-navy text-white font-bold rounded-2xl hover:bg-slate-800 transition-all shadow-lg shadow-queen-navy/20">
-          <UserPlus size={20} />
-          <span>Tambah Karyawan</span>
+        <button className="flex items-center gap-2 px-5 py-3 bg-queen-navy text-white text-xs font-bold rounded-2xl shadow-lg">
+          <UserPlus size={18} />
+          Tambah Staff
         </button>
       </div>
 
-      {/* Search Bar */}
+      {/* SEARCH */}
       <div className="relative">
         <Search
           className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-          size={20}
+          size={18}
         />
         <input
           type="text"
-          placeholder="Cari nama, nomor HP, atau alamat..."
-          className="w-full pl-12 pr-4 py-4 rounded-[1.5rem] border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-queen-gold outline-none shadow-sm transition-all"
+          placeholder="Cari nama karyawan..."
+          className="w-full pl-11 pr-4 py-3 rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-queen-gold outline-none text-sm"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
-      {/* DESKTOP VIEW (TABLE) */}
-      <div className="hidden lg:block bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-slate-700/50 overflow-hidden">
+      {/* ================= DESKTOP ================= */}
+      <div className="hidden lg:block bg-white dark:bg-slate-800 rounded-[2rem] border overflow-hidden">
         <table className="w-full text-left">
-          <thead className="bg-gray-50 dark:bg-slate-900/50 text-[10px] uppercase tracking-widest text-gray-400 font-bold">
+          <thead className="bg-gray-50 dark:bg-slate-900 text-[10px] uppercase text-gray-400">
             <tr>
-              <th className="px-8 py-5">Nama Karyawan</th>
-              <th className="px-8 py-5">Kontak & Alamat</th>
-              <th className="px-8 py-5">Gaji</th>
-              <th className="px-8 py-5">Status</th>
-              <th className="px-8 py-5 text-right">Aksi</th>
+              <th className="px-6 py-4">Karyawan</th>
+              <th className="px-6 py-4">Role</th>
+              <th className="px-6 py-4">Shift</th>
+              <th className="px-6 py-4">Gaji</th>
+              <th className="px-6 py-4">Status</th>
+              <th className="px-6 py-4 text-right">Aksi</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-            {customers.map((cust) => (
-              <tr
-                key={cust.id}
-                className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group"
-              >
-                <td className="px-8 py-6">
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-2xl bg-queen-gold/10 flex items-center justify-center text-queen-navy font-black">
-                      {cust.name.charAt(0)}
+
+          <tbody>
+            {filtered.map((emp) => (
+              <tr key={emp.id} className="border-t">
+                {/* NAME */}
+                <td className="px-6 py-5">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-queen-gold/20 flex items-center justify-center font-bold">
+                      {emp.name.charAt(0)}
                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-black text-queen-navy dark:text-white">
-                        {cust.name}
-                      </span>
-                      <span className="text-[10px] text-gray-400 font-bold">
-                        {cust.id}
-                      </span>
+                    <div>
+                      <p className="font-bold dark:text-white">{emp.name}</p>
+                      <p className="text-xs text-gray-400">{emp.id}</p>
                     </div>
                   </div>
                 </td>
-                <td className="px-8 py-6 text-sm">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-gray-600 dark:text-slate-300">
-                      <Phone size={14} className="text-green-500" />{" "}
-                      {cust.phone}
-                    </div>
-                    <div className="flex items-center gap-2 text-gray-400 text-xs">
-                      <MapPin size={14} /> {cust.address}
-                    </div>
-                  </div>
-                </td>
-                <td className="px-8 py-6">
-                  <div className="text-xs">
-                    <p className="font-bold text-queen-navy dark:text-queen-gold-light">
-                      {cust.totalOrders} Order
-                    </p>
-                    <p className="text-gray-400">{cust.lastOrder}</p>
-                  </div>
-                </td>
-                <td className="px-8 py-6">
-                  <span className="px-3 py-1 bg-slate-100 dark:bg-slate-700 rounded-lg text-[10px] font-black uppercase tracking-tighter">
-                    {cust.status}
+
+                {/* ROLE */}
+                <td className="px-6 py-5">
+                  <span
+                    className={`px-3 py-1 rounded-lg text-xs font-bold ${roleBadge(
+                      emp.role
+                    )}`}
+                  >
+                    {emp.role}
                   </span>
                 </td>
-                <td className="px-8 py-6 text-right">
+
+                {/* SHIFT */}
+                <td className="px-6 py-5">
+                  <span
+                    className={`px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1 w-fit ${shiftBadge(
+                      emp.shift
+                    )}`}
+                  >
+                    <Clock size={12} />
+                    {emp.shift}
+                  </span>
+                </td>
+
+                {/* SALARY */}
+                <td className="px-6 py-5 font-semibold dark:text-white text-black">
+                  Rp {emp.salary.toLocaleString("id-ID")}
+                </td>
+
+                {/* STATUS */}
+                <td className="px-6 py-5">
+                  <span
+                    className={`px-3 py-1 rounded-lg text-xs font-bold ${
+                      emp.status === "Aktif"
+                        ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
+                        : "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400"
+                    }`}
+                  >
+                    {emp.status}
+                  </span>
+                </td>
+
+                {/* ACTION */}
+                <td className="px-6 py-5 text-right">
                   <div className="flex justify-end gap-2">
-                    <button className="p-2 text-green-600 hover:bg-green-50 rounded-xl transition-colors">
-                      <MessageCircle size={20} />
-                    </button>
-                    <button className="p-2 text-gray-400 hover:bg-gray-100 rounded-xl">
-                      <ChevronRight size={20} />
+                    {/* WHATSAPP BUTTON */}
+                    <a
+                      href={`https://wa.me/${emp.phone}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="p-2 text-green-600 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-xl transition"
+                    >
+                      <MessageCircle size={18} />
+                    </a>
+
+                    {/* DETAIL */}
+                    <button className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-xl">
+                      <ChevronRight size={18} />
                     </button>
                   </div>
                 </td>
@@ -152,58 +201,59 @@ const Karyawan = () => {
         </table>
       </div>
 
-      {/* MOBILE VIEW (CARDS) */}
+      {/* ================= MOBILE ================= */}
       <div className="lg:hidden space-y-4">
-        {customers.map((cust) => (
+        {filtered.map((emp) => (
           <div
-            key={cust.id}
-            className="bg-white dark:bg-slate-800 p-5 rounded-[2.5rem] border border-gray-100 dark:border-slate-700 shadow-sm"
+            key={emp.id}
+            className="bg-white dark:bg-slate-800 p-5 rounded-3xl border shadow-sm"
           >
-            <div className="flex items-center gap-4 mb-5">
-              <div className="h-14 w-14 rounded-3xl bg-queen-navy text-queen-gold flex items-center justify-center text-xl font-black shadow-lg shadow-queen-navy/10">
-                {cust.name.charAt(0)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-black text-queen-navy dark:text-white truncate">
-                  {cust.name}
-                </h3>
-                <div className="flex items-center gap-2 text-green-600 font-bold text-sm">
-                  <Phone size={14} /> {cust.phone}
-                </div>
-              </div>
-              <span className="bg-queen-gold/10 text-queen-navy dark:text-queen-gold px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest">
-                {cust.status}
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-black text-lg dark:text-white">{emp.name}</h3>
+              <span
+                className={`text-xs font-bold ${
+                  emp.status === "Aktif" ? "text-green-600" : "text-yellow-600"
+                }`}
+              >
+                {emp.status}
               </span>
             </div>
 
-            <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-3xl space-y-3 mb-5">
-              <div className="flex items-start gap-3">
-                <MapPin size={16} className="text-gray-400 shrink-0 mt-0.5" />
-                <p className="text-xs text-gray-600 dark:text-slate-400 leading-relaxed">
-                  {cust.address}
-                </p>
-              </div>
-              <div className="flex justify-between border-t border-gray-200 dark:border-slate-700 pt-3">
-                <div className="flex items-center gap-2 text-[11px] font-bold text-gray-400">
-                  <History size={14} /> {cust.totalOrders} Kali Order
-                </div>
-                <div className="text-[11px] text-queen-navy dark:text-queen-gold font-bold">
-                  {cust.lastOrder}
-                </div>
-              </div>
+            <div className="flex gap-2 mb-3">
+              <span
+                className={`px-2 py-1 text-xs rounded-lg font-bold ${roleBadge(
+                  emp.role
+                )}`}
+              >
+                {emp.role}
+              </span>
+              <span
+                className={`px-2 py-1 text-xs rounded-lg font-bold ${shiftBadge(
+                  emp.shift
+                )}`}
+              >
+                {emp.shift}
+              </span>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex items-center gap-2 font-bold text-queen-navy dark:text-queen-gold">
+              <Wallet size={14} />
+              Rp {emp.salary.toLocaleString("id-ID")}
+            </div>
+
+            {/* ACTION */}
+            <div className="flex gap-3 mt-4">
               <a
-                href={`https://wa.me/${cust.phone}`}
+                href={`https://wa.me/${emp.phone}`}
                 target="_blank"
                 rel="noreferrer"
-                className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-green-500 text-white rounded-2xl font-bold shadow-lg shadow-green-500/20 active:scale-95 transition-all"
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-green-500 text-white rounded-xl font-bold"
               >
-                <MessageCircle size={18} />
-                <span>WhatsApp</span>
+                <MessageCircle size={16} />
+                Chat
               </a>
-              <button className="px-5 py-3.5 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-white rounded-2xl font-bold active:scale-95 transition-all">
+
+              <button className="flex-1 py-3 bg-queen-navy text-white rounded-xl font-bold">
                 Detail
               </button>
             </div>

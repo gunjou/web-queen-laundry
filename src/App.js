@@ -147,6 +147,24 @@ function App() {
             }
           />
 
+          <Route
+            path="/staff/profile"
+            element={
+              <ProtectedRoute allowedRoles={["staff"]}>
+                <ProfileUser />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/staff/services"
+            element={
+              <ProtectedRoute allowedRoles={["staff"]}>
+                <Services />
+              </ProtectedRoute>
+            }
+          />
+
           {/* ================= USER ================= */}
           <Route
             path="/user/dashboard"
