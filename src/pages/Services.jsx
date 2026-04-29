@@ -77,9 +77,6 @@ const Services = () => {
     });
   };
 
-  // =========================
-  // TAB BUTTON
-  // =========================
   const tabs = [
     { key: "type", label: "Tipe Layanan" },
     { key: "service", label: "Layanan" },
@@ -91,20 +88,20 @@ const Services = () => {
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 dark:text-white">
+          <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
             Manajemen Layanan
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Kelola tipe, layanan, dan add-on
           </p>
         </div>
 
-        <button className="flex items-center gap-2 px-4 py-2 bg-queen-navy text-white rounded-xl text-xs font-bold">
+        <button className="flex items-center gap-2 px-4 py-2 bg-queen-navy text-white rounded-xl text-xs font-bold shadow-sm hover:opacity-90 transition">
           <Plus size={16} /> Tambah
         </button>
       </div>
 
-      {/* 🔥 TAB SWITCH */}
+      {/* TAB SWITCH */}
       <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs w-fit">
         {tabs.map((item) => (
           <button
@@ -113,7 +110,7 @@ const Services = () => {
             className={`px-4 py-2 rounded-lg transition ${
               tab === item.key
                 ? "bg-white dark:bg-slate-900 shadow text-slate-800 dark:text-white"
-                : "text-slate-500"
+                : "text-slate-500 dark:text-slate-400"
             }`}
           >
             {item.label}
@@ -121,40 +118,41 @@ const Services = () => {
         ))}
       </div>
 
-      {/* =========================
-          CONTENT
-      ========================= */}
-
-      {/* TYPE LAYANAN */}
+      {/* ========================= TYPE ========================= */}
       {tab === "type" && (
         <div className="grid gap-4">
           {serviceTypes.map((type) => (
             <div
               key={type.id}
-              className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-slate-200/50 dark:border-slate-700/50"
+              className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md dark:hover:shadow-slate-900/40 transition"
             >
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
-                  <type.icon size={20} />
+                  <type.icon
+                    className="text-slate-600 dark:text-slate-300"
+                    size={20}
+                  />
                   <h3 className="font-bold text-slate-800 dark:text-white">
                     {type.name}
                   </h3>
                 </div>
 
                 <div className="flex gap-2">
-                  <Edit3 size={16} className="text-blue-500" />
-                  <Trash2
+                  <Edit3
+                    className="text-blue-500 dark:text-blue-400 cursor-pointer"
                     size={16}
-                    className="text-red-500"
+                  />
+                  <Trash2
+                    className="text-red-500 dark:text-red-400 cursor-pointer"
+                    size={16}
                     onClick={() => handleDelete(type.name)}
                   />
                 </div>
               </div>
 
-              {/* PRICING */}
-              <div className="mt-3 text-xs text-slate-500">
+              <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">
                 {type.pricing ? (
-                  <div className="flex gap-4">
+                  <div className="flex gap-4 flex-wrap">
                     <span>Near: Rp {type.pricing.dekat}</span>
                     <span>Mid: Rp {type.pricing.sedang}</span>
                     <span>Far: Rp {type.pricing.jauh}</span>
@@ -168,24 +166,26 @@ const Services = () => {
         </div>
       )}
 
-      {/* LAYANAN */}
+      {/* ========================= SERVICE ========================= */}
       {tab === "service" && (
         <div className="grid gap-4">
           {services.map((srv) => (
             <div
               key={srv.id}
-              className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-slate-200/50 dark:border-slate-700/50"
+              className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md dark:hover:shadow-slate-900/40 transition"
             >
               <div className="flex justify-between">
                 <div>
                   <h3 className="font-bold text-slate-800 dark:text-white">
                     {srv.name}
                   </h3>
-                  <p className="text-xs text-slate-500">{srv.duration}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {srv.duration}
+                  </p>
                 </div>
 
                 <div className="text-right">
-                  <p className="font-bold text-indigo-600">
+                  <p className="font-bold text-indigo-600 dark:text-indigo-400">
                     Rp {srv.price.toLocaleString()}
                   </p>
                   <p className="text-xs text-slate-400">/{srv.unit}</p>
@@ -193,10 +193,13 @@ const Services = () => {
               </div>
 
               <div className="flex justify-end gap-2 mt-3">
-                <Edit3 size={16} className="text-blue-500" />
-                <Trash2
+                <Edit3
+                  className="text-blue-500 dark:text-blue-400 cursor-pointer"
                   size={16}
-                  className="text-red-500"
+                />
+                <Trash2
+                  className="text-red-500 dark:text-red-400 cursor-pointer"
+                  size={16}
                   onClick={() => handleDelete(srv.name)}
                 />
               </div>
@@ -205,39 +208,45 @@ const Services = () => {
         </div>
       )}
 
-      {/* ADD ON */}
+      {/* ========================= ADDON ========================= */}
       {tab === "addon" && (
         <div className="grid gap-4">
           {addons.map((addon) => (
             <div
               key={addon.id}
-              className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-slate-200/50 dark:border-slate-700/50"
+              className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md dark:hover:shadow-slate-900/40 transition"
             >
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
-                  <addon.icon size={20} className="text-yellow-500" />
+                  <addon.icon
+                    className="text-yellow-500 dark:text-yellow-400"
+                    size={20}
+                  />
                   <h3 className="font-bold text-slate-800 dark:text-white">
                     {addon.name}
                   </h3>
                 </div>
 
-                <p className="font-bold text-amber-500">
+                <p className="font-bold text-amber-500 dark:text-amber-400">
                   Rp {addon.price.toLocaleString()}
                 </p>
               </div>
 
-              <div className="flex justify-between mt-2 text-xs text-slate-500">
+              <div className="flex justify-between mt-2 text-xs text-slate-500 dark:text-slate-400">
                 <span className="uppercase">{addon.type}</span>
-                <span className="flex items-center gap-1 text-emerald-500">
+                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
                   <TrendingUp size={12} /> Upsell
                 </span>
               </div>
 
               <div className="flex justify-end gap-2 mt-3">
-                <Edit3 size={16} className="text-blue-500" />
-                <Trash2
+                <Edit3
+                  className="text-blue-500 dark:text-blue-400 cursor-pointer"
                   size={16}
-                  className="text-red-500"
+                />
+                <Trash2
+                  className="text-red-500 dark:text-red-400 cursor-pointer"
+                  size={16}
                   onClick={() => handleDelete(addon.name)}
                 />
               </div>
