@@ -5,7 +5,6 @@ import {
   Users,
   Package,
   CreditCard,
-  Settings,
   BarChart3,
   LogOut,
   IdCardLanyard,
@@ -15,103 +14,44 @@ import { NavLink, useNavigate } from "react-router-dom";
 import LogoImg from "../assets/logo.png";
 
 // =========================
-// MENU ROLE CONFIG
+// ADMIN MENU ONLY
 // =========================
-const menuSections = {
-  admin: [
-    {
-      title: "MAIN",
-      items: [{ name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" }],
-    },
-    {
-      title: "TRANSAKSI",
-      items: [
-        { name: "Order", icon: ShoppingCart, path: "/orders" },
-        { name: "Pembayaran", icon: CreditCard, path: "/payments" },
-      ],
-    },
-    {
-      title: "MASTER DATA",
-      items: [
-        { name: "Customer", icon: Users, path: "/customers" },
-        { name: "Karyawan", icon: IdCardLanyard, path: "/karyawan" },
-        { name: "Layanan", icon: Package, path: "/services" },
-      ],
-    },
-    {
-      title: "SYSTEM",
-      items: [
-        { name: "Laporan", icon: BarChart3, path: "/reports" },
-        // { name: "Pengaturan", icon: Settings, path: "/settings" },
-      ],
-    },
-  ],
-
-  staff: [
-    {
-      title: "MAIN",
-      items: [
-        { name: "Dashboard", icon: LayoutDashboard, path: "/staff/dashboard" },
-      ],
-    },
-    {
-      title: "TRANSAKSI",
-      items: [
-        { name: "Order", icon: ShoppingCart, path: "/staff/orders" },
-        { name: "Pembayaran", icon: CreditCard, path: "/staff/payments" },
-      ],
-    },
-    {
-      title: "MASTER DATA",
-      items: [
-        { name: "Customer", icon: Users, path: "/staff/customers" },
-        { name: "Layanan", icon: Package, path: "/staff/services" },
-      ],
-    },
-    {
-      title: "AKUN",
-      items: [{ name: "Profile", icon: Users, path: "/staff/profile" }],
-    },
-  ],
-
-  user: [
-    {
-      title: "MAIN",
-      items: [
-        { name: "Dashboard", icon: LayoutDashboard, path: "/user/dashboard" },
-      ],
-    },
-    {
-      title: "TRANSAKSI",
-      items: [{ name: "Order", icon: ShoppingCart, path: "/user/orders" }],
-    },
-    {
-      title: "LAYANAN",
-      items: [{ name: "Layanan", icon: Package, path: "/user/services" }],
-    },
-    {
-      title: "AKUN",
-      items: [{ name: "Profile", icon: Users, path: "/user/profile" }],
-    },
-  ],
-};
+const menuSections = [
+  {
+    title: "MAIN",
+    items: [{ name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" }],
+  },
+  {
+    title: "TRANSAKSI",
+    items: [
+      { name: "Order", icon: ShoppingCart, path: "/orders" },
+      { name: "Pembayaran", icon: CreditCard, path: "/payments" },
+    ],
+  },
+  {
+    title: "MASTER DATA",
+    items: [
+      { name: "Customer", icon: Users, path: "/customers" },
+      { name: "Karyawan", icon: IdCardLanyard, path: "/karyawan" },
+      { name: "Layanan", icon: Package, path: "/services" },
+    ],
+  },
+  {
+    title: "SYSTEM",
+    items: [{ name: "Laporan", icon: BarChart3, path: "/reports" }],
+  },
+];
 
 const Sidebar = () => {
   const navigate = useNavigate();
 
-  // =========================
-  // GET ROLE USER
-  // =========================
-  const user = JSON.parse(localStorage.getItem("user"));
-  const role = user?.role || "user";
-
-  const sections = menuSections[role] || [];
-  const flatMenus = sections.flatMap((s) => s.items);
+  const flatMenus = menuSections.flatMap((s) => s.items);
 
   // =========================
-  // LOGOUT FUNCTION
+  // LOGOUT
   // =========================
   const handleLogout = () => {
+    localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/login");
   };
@@ -133,9 +73,9 @@ const Sidebar = () => {
 
         {/* MENU */}
         <div className="flex-1 px-3 space-y-6 overflow-y-auto">
-          {sections.map((section) => (
+          {menuSections.map((section) => (
             <div key={section.title}>
-              <p className="text-[10px] font-semibold text-gray-400 px-3">
+              <p className="text-[10px] font-semibold text-gray-400 px-3 mb-2">
                 {section.title}
               </p>
 
@@ -145,10 +85,10 @@ const Sidebar = () => {
                     key={menu.name}
                     to={menu.path}
                     className={({ isActive }) =>
-                      `relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
+                      `relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
                         isActive
                           ? "bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white"
-                          : "text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5"
+                          : "text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-white/5"
                       }`
                     }
                   >
@@ -176,10 +116,10 @@ const Sidebar = () => {
         </div>
 
         {/* LOGOUT */}
-        <div className="px-4 py-2 border-t border-gray-100 dark:border-white/10">
+        <div className="px-4 py-3 border-t border-gray-100 dark:border-white/10">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2.5 w-full text-sm text-red-500 hover:bg-red-500/10 rounded-lg"
+            className="flex items-center gap-3 px-3 py-2.5 w-full text-sm text-red-500 hover:bg-red-500/10 rounded-xl"
           >
             <LogOut size={18} />
             Keluar

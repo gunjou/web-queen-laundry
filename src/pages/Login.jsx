@@ -4,56 +4,62 @@ import { Lock, User, Sun, Moon, Eye, EyeOff, LogIn } from "lucide-react";
 import Swal from "sweetalert2";
 
 import LogoImg from "../assets/logo.png";
-import { users } from "../data/users";
+import { loginRequest } from "../api/auth/auth.api";
 
 const Login = ({ darkMode, setDarkMode }) => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     const username = e.target.username.value;
     const password = e.target.password.value;
 
-    setTimeout(() => {
-      const foundUser = users.find(
-        (u) => u.username === username && u.password === password
-      );
+    try {
+      const result = await loginRequest({
+        username,
+        password,
+      });
 
-      setLoading(false);
+      const token = result.token;
 
-      if (!foundUser) {
-        Swal.fire({
-          title: "Login Gagal",
-          text: "Username atau password salah",
-          icon: "error",
-          confirmButtonColor: "#1B305B",
-        });
-        return;
+      if (!token) {
+        throw new Error("Token tidak ditemukan");
       }
 
-      localStorage.setItem("user", JSON.stringify(foundUser));
+      // sementara simpan data minimal dari form login
+      const user = {
+        username,
+      };
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify({ username }));
 
       Swal.fire({
         title: "Berhasil Masuk!",
-        text: `Selamat Datang ${foundUser.name}`,
+        text: `Selamat datang ${username}`,
         icon: "success",
         confirmButtonColor: "#1B305B",
-        timer: 1500,
+        timer: 1200,
         showConfirmButton: false,
-      }).then(() => {
-        if (foundUser.role === "admin") {
-          navigate("/dashboard");
-        } else if (foundUser.role === "staff") {
-          navigate("/staff/dashboard");
-        } else {
-          navigate("/user/dashboard");
-        }
       });
-    }, 1000);
+
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1200);
+    } catch (err) {
+      Swal.fire({
+        title: "Login Gagal",
+        text: err.message || "Username atau password salah",
+        icon: "error",
+        confirmButtonColor: "#1B305B",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

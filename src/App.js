@@ -6,7 +6,7 @@ import LandingPage from "./pages/LandingPage/Index";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-// ADMIN & STAFF
+// ADMIN
 import Dashboard from "./pages/Dashboard";
 import OrderList from "./pages/OrderList";
 import Customers from "./pages/Customers";
@@ -14,12 +14,6 @@ import Services from "./pages/Services";
 import AdminReports from "./pages/AdminReports";
 import Karyawan from "./pages/Karyawan";
 import AdminPayment from "./pages/AdminPayment";
-
-// USER
-import DashboardUser from "./pages/user/DashboardUser";
-import Orders from "./pages/user/Orders";
-import ServicesUser from "./pages/user/Services";
-import ProfileUser from "./pages/user/Profile";
 
 function App() {
   const [darkMode, setDarkMode] = useState(false);
@@ -38,7 +32,7 @@ function App() {
           element={<Login darkMode={darkMode} setDarkMode={setDarkMode} />}
         />
 
-        {/* ================= LAYOUT (PROTECTED) ================= */}
+        {/* PROTECTED */}
         <Route
           element={
             <ProtectedRoute>
@@ -46,11 +40,10 @@ function App() {
             </ProtectedRoute>
           }
         >
-          {/* ================= ADMIN ================= */}
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute allowedRoles={["admin"]}>
+              <ProtectedRoute>
                 <Dashboard />
               </ProtectedRoute>
             }
@@ -59,7 +52,7 @@ function App() {
           <Route
             path="/orders"
             element={
-              <ProtectedRoute allowedRoles={["admin"]}>
+              <ProtectedRoute>
                 <OrderList />
               </ProtectedRoute>
             }
@@ -68,7 +61,7 @@ function App() {
           <Route
             path="/customers"
             element={
-              <ProtectedRoute allowedRoles={["admin"]}>
+              <ProtectedRoute>
                 <Customers />
               </ProtectedRoute>
             }
@@ -77,7 +70,7 @@ function App() {
           <Route
             path="/karyawan"
             element={
-              <ProtectedRoute allowedRoles={["admin"]}>
+              <ProtectedRoute>
                 <Karyawan />
               </ProtectedRoute>
             }
@@ -86,7 +79,7 @@ function App() {
           <Route
             path="/payments"
             element={
-              <ProtectedRoute allowedRoles={["admin"]}>
+              <ProtectedRoute>
                 <AdminPayment />
               </ProtectedRoute>
             }
@@ -95,7 +88,7 @@ function App() {
           <Route
             path="/services"
             element={
-              <ProtectedRoute allowedRoles={["admin", "staff"]}>
+              <ProtectedRoute>
                 <Services />
               </ProtectedRoute>
             }
@@ -104,100 +97,8 @@ function App() {
           <Route
             path="/reports"
             element={
-              <ProtectedRoute allowedRoles={["admin"]}>
+              <ProtectedRoute>
                 <AdminReports />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* ================= STAFF ================= */}
-          <Route
-            path="/staff/dashboard"
-            element={
-              <ProtectedRoute allowedRoles={["staff"]}>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/staff/orders"
-            element={
-              <ProtectedRoute allowedRoles={["staff"]}>
-                <OrderList />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/staff/customers"
-            element={
-              <ProtectedRoute allowedRoles={["staff"]}>
-                <Customers />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/staff/payments"
-            element={
-              <ProtectedRoute allowedRoles={["staff"]}>
-                <AdminPayment />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/staff/profile"
-            element={
-              <ProtectedRoute allowedRoles={["staff"]}>
-                <ProfileUser />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/staff/services"
-            element={
-              <ProtectedRoute allowedRoles={["staff"]}>
-                <Services />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* ================= USER ================= */}
-          <Route
-            path="/user/dashboard"
-            element={
-              <ProtectedRoute allowedRoles={["user"]}>
-                <DashboardUser />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/user/orders"
-            element={
-              <ProtectedRoute allowedRoles={["user"]}>
-                <Orders />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/user/services"
-            element={
-              <ProtectedRoute allowedRoles={["user"]}>
-                <ServicesUser />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/user/profile"
-            element={
-              <ProtectedRoute allowedRoles={["user"]}>
-                <ProfileUser />
               </ProtectedRoute>
             }
           />
