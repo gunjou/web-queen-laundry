@@ -200,7 +200,7 @@ const OrderList = () => {
 
       {/* DESKTOP */}
       <div className="hidden lg:block bg-white dark:bg-slate-800 rounded-3xl border overflow-hidden">
-        <div className="max-h-[520px] overflow-y-auto">
+        <div className="max-h-[370px] overflow-y-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 bg-gray-50 dark:bg-slate-900 text-xs uppercase text-gray-400">
               <tr>
@@ -275,17 +275,17 @@ const OrderList = () => {
                           order.order_status
                         )}`}
                       >
-                        <option value="DITERIMA">DITERIMA</option>
-                        <option value="DIPROSES">DIPROSES</option>
+                        <option value="DITERIMA">DI TERIMA</option>
+                        <option value="DIPROSES">DI PROSES</option>
                         <option value="SELESAI">SELESAI</option>
-                        <option value="DIAMBIL">DIAMBIL</option>
+                        <option value="DIAMBIL">DI AMBIL</option>
                       </select>
                     </td>
 
                     <td className="px-6 py-5">
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          order.payment_status === "LUNAS"
+                          order.payment_status === "SUDAH_BAYAR"
                             ? "bg-green-100 text-green-700"
                             : "bg-red-100 text-red-700"
                         }`}

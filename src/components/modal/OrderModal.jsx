@@ -625,21 +625,23 @@ const OrderModal = ({ isOpen, onClose, onSuccess }) => {
             </div>
           </div>
           {/* PAYMENT METHOD */}
-          <div className="space-y-2">
-            <label className="label">
-              <Wallet size={14} /> Metode Pembayaran
-            </label>
+          {paymentStatus === "Lunas" && (
+            <div className="space-y-2">
+              <label className="label">
+                <Wallet size={14} /> Metode Pembayaran
+              </label>
 
-            <select
-              value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
-              className="input"
-            >
-              <option>Cash</option>
-              <option>Transfer</option>
-              <option>QRIS</option>
-            </select>
-          </div>
+              <select
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className="input"
+              >
+                <option>Cash</option>
+                <option>Transfer</option>
+                <option>QRIS</option>
+              </select>
+            </div>
+          )}
 
           {/* PAYMENT STATUS */}
           <div className="space-y-3">
