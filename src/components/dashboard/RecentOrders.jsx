@@ -55,13 +55,12 @@ const RecentOrders = ({ orders }) => {
           >
             <div className="flex justify-between">
               <span className="font-bold dark:text-white">#{o.id}</span>
-              <td>
-                <span
-                  className={`px-2 py-1 text-xs rounded ${statusMap[o.status]}`}
-                >
-                  {o.status}
-                </span>
-              </td>
+
+              <span
+                className={`px-2 py-1 text-xs rounded ${statusMap[o.status]}`}
+              >
+                {o.status}
+              </span>
             </div>
 
             <p className="text-sm mt-1 dark:text-white">{o.customer}</p>

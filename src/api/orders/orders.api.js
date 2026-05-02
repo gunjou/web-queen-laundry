@@ -110,3 +110,16 @@ export const deleteOrder = async (id) => {
 
   return true;
 };
+
+// ==============================
+// GET ORDER SUMMARY
+// ==============================
+export const getOrderSummary = async () => {
+  const res = await fetch(`${API_BASE_URL}/orders/summary`, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!res.ok) throw new Error("Gagal mengambil summary order");
+
+  return await res.json();
+};

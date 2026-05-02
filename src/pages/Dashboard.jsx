@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 
 import StatsGrid from "../components/dashboard/StatsGrid";
@@ -7,19 +7,35 @@ import RecentOrders from "../components/dashboard/RecentOrders";
 import ActivityCard from "../components/dashboard/ActivityCard";
 import OrderModal from "../components/modal/OrderModal";
 
-import {
-  statsData,
-  ordersData,
-  chartData,
-  activityData,
-} from "../data/dashboardData";
+import { getOrderSummary } from "../api/orders/orders.api";
+import { ordersData, chartData, activityData } from "../data/dashboardData";
 
 const Dashboard = () => {
   const [filter, setFilter] = useState("Minggu");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // sementara pakai token saja
+  const [summary, setSummary] = useState(null);
+  const [loading, setLoading] = useState(true);
+
   const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    if (!token) return;
+
+    const fetchSummary = async () => {
+      try {
+        setLoading(true);
+        const res = await getOrderSummary();
+        setSummary(res);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSummary();
+  }, [token]);
 
   if (!token) {
     window.location.href = "/login";
@@ -34,7 +50,6 @@ const Dashboard = () => {
           <h1 className="text-xl md:text-2xl font-bold text-queen-navy dark:text-white">
             Dashboard
           </h1>
-
           <p className="text-sm text-gray-500">Ringkasan bisnis hari ini</p>
         </div>
 
@@ -48,8 +63,8 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* STATS */}
-      <StatsGrid stats={statsData} />
+      {/* STATS — FIXED */}
+      <StatsGrid stats={summary} loading={loading} />
 
       {/* CHART + ACTION */}
       <div className="grid lg:grid-cols-3 gap-6 items-start">
@@ -61,7 +76,7 @@ const Dashboard = () => {
           />
         </div>
 
-        <div className="hidden lg:flex flex-col justify-between bg-gradient-to-br from-queen-navy to-slate-800 text-white rounded-3xl p-6 shadow-xl border border-white/5 relative overflow-hidden">
+        <div className="hidden lg:flex flex-col justify-between bg-gradient-to-br from-queen-navy to-slate-800 text-white rounded-3xl p-6">
           <div>
             <div className="bg-queen-gold/20 p-3 rounded-xl w-fit mb-4">
               <Plus className="text-queen-gold" size={24} />
@@ -70,14 +85,13 @@ const Dashboard = () => {
             <h3 className="text-xl font-bold mb-2">Tambah Order Baru</h3>
 
             <p className="text-sm text-blue-100">
-              Buat transaksi laundry dengan cepat dan otomatis tercatat ke
-              sistem.
+              Buat transaksi laundry dengan cepat.
             </p>
           </div>
 
           <button
             onClick={() => setIsModalOpen(true)}
-            className="mt-4 w-full py-3 bg-queen-gold text-queen-navy font-bold rounded-xl hover:shadow-lg transition active:scale-95"
+            className="mt-4 w-full py-3 bg-queen-gold text-queen-navy font-bold rounded-xl"
           >
             + Buat Order
           </button>
@@ -93,11 +107,11 @@ const Dashboard = () => {
         <ActivityCard activities={activityData} />
       </div>
 
-      {/* FLOAT BUTTON MOBILE */}
+      {/* FLOAT BUTTON */}
       <div className="lg:hidden fixed bottom-24 right-5 z-50">
         <button
           onClick={() => setIsModalOpen(true)}
-          className="w-14 h-14 rounded-full bg-queen-navy dark:bg-queen-gold text-white dark:text-queen-navy shadow-lg flex items-center justify-center active:scale-95 transition"
+          className="w-14 h-14 rounded-full bg-queen-navy text-white shadow-lg flex items-center justify-center"
         >
           <Plus size={26} />
         </button>
