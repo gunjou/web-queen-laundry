@@ -123,3 +123,19 @@ export const getOrderSummary = async () => {
 
   return await res.json();
 };
+// ==============================
+// GET ORDERS BELUM BAYAR
+// ==============================
+export const getUnpaidOrders = async () => {
+  const res = await fetch(`${API_BASE_URL}/orders`, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!res.ok) {
+    throw new Error("Gagal mengambil data order");
+  }
+
+  const data = await res.json();
+
+  return data.filter((order) => order.payment_status === "BELUM_BAYAR");
+};

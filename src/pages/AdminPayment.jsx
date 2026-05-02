@@ -1,96 +1,77 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  Plus,
+  Search,
   CreditCard,
   QrCode,
   Wallet,
   Building2,
-  ToggleRight,
-  ToggleLeft,
-  ImagePlus,
+  Plus,
 } from "lucide-react";
+import Swal from "sweetalert2";
 
-/* =========================
-   INITIAL DATA
-========================= */
-const initialPayments = [
-  {
-    id: 1,
-    name: "QRIS",
-    type: "qris",
-    image: "",
-    active: true,
-  },
-  {
-    id: 2,
-    name: "Transfer BCA",
-    type: "bank",
-    number: "1234567890",
-    active: true,
-  },
-  {
-    id: 3,
-    name: "Cash",
-    type: "cash",
-    active: true,
-  },
-];
+import PaymentModal from "../components/modal/PaymentModal";
+import { getPayments, createPayment } from "../api/payments/payments.api";
 
-const AdminPayment = () => {
-  const [payments, setPayments] = useState(initialPayments);
+const Payments = () => {
+  const [payments, setPayments] = useState([]);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
 
   const [form, setForm] = useState({
-    name: "",
-    type: "qris",
-    number: "",
-    image: "",
+    id_order: "",
+    jumlah: "",
+    metode: "",
   });
 
   /* =========================
-     HANDLE IMAGE
+     FETCH DATA
   ========================= */
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  useEffect(() => {
+    fetchPayments();
+  }, []);
 
-    const imageUrl = URL.createObjectURL(file);
-    setForm({ ...form, image: imageUrl });
+  console.log({
+    id_order: Number(form.id_order),
+    jumlah: Number(form.jumlah),
+    metode: form.metode,
+  });
+
+  const fetchPayments = async () => {
+    try {
+      setLoading(true);
+      const data = await getPayments();
+      setPayments(Array.isArray(data) ? data : []);
+    } catch (err) {
+      Swal.fire("Error", err.message || "Gagal ambil data payments", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   /* =========================
-     ADD PAYMENT
+     FILTER
   ========================= */
-  const handleAdd = () => {
-    if (!form.name) return;
+  const filtered = useMemo(() => {
+    return payments.filter((p) => {
+      const q = search.toLowerCase();
 
-    setPayments([
-      ...payments,
-      {
-        id: Date.now(),
-        ...form,
-        active: true,
-      },
-    ]);
-
-    setForm({ name: "", type: "qris", number: "", image: "" });
-    setIsModalOpen(false);
-  };
+      return (
+        p.kode_invoice?.toLowerCase().includes(q) ||
+        p.metode?.toLowerCase().includes(q)
+      );
+    });
+  }, [payments, search]);
 
   /* =========================
-     TOGGLE
+     ICON
   ========================= */
-  const toggleActive = (id) => {
-    setPayments((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, active: !p.active } : p))
-    );
-  };
-
-  const getIcon = (type) => {
-    switch (type) {
+  const getIcon = (metode) => {
+    switch (metode?.toLowerCase()) {
       case "qris":
         return <QrCode size={18} />;
-      case "bank":
+      case "transfer":
         return <Building2 size={18} />;
       case "cash":
         return <Wallet size={18} />;
@@ -99,179 +80,185 @@ const AdminPayment = () => {
     }
   };
 
+  const formatRupiah = (n) =>
+    new Intl.NumberFormat("id-ID").format(Number(n || 0));
+
+  /* =========================
+     SUBMIT PAYMENT (FIX 400)
+  ========================= */
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      setLoadingSubmit(true);
+
+      const payload = {
+        id_order: Number(form.id_order),
+        jumlah: Number(form.jumlah),
+        metode: form.metode,
+      };
+
+      // VALIDASI WAJIB
+      if (!payload.id_order || !payload.jumlah || !payload.metode) {
+        Swal.fire("Error", "Semua field wajib diisi", "warning");
+        return;
+      }
+
+      await createPayment(payload);
+      await fetchPayments();
+
+      setForm({ id_order: "", jumlah: "", metode: "" });
+      setIsModalOpen(false);
+
+      Swal.fire("Berhasil", "Payment berhasil ditambahkan", "success");
+    } catch (err) {
+      Swal.fire("Error", err.message || "Gagal membuat payment", "error");
+    } finally {
+      setLoadingSubmit(false);
+    }
+  };
+
   return (
-    <div className="space-y-6 bg-gray-50 dark:bg-slate-900 min-h-screen">
+    <div className="space-y-6 pb-24 lg:pb-10">
       {/* HEADER */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-queen-navy dark:text-white">
-            Pembayaran
+          <h1 className="text-2xl font-black text-queen-navy dark:text-white">
+            Payments
           </h1>
-          <p className="text-sm text-gray-500">Kelola metode pembayaran</p>
+          <p className="text-sm text-gray-500">Riwayat pembayaran transaksi</p>
         </div>
 
+        <div className="flex gap-3 items-center">
+          {/* SEARCH */}
+          <div className="relative w-full lg:w-[300px]">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              size={18}
+            />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cari invoice / metode..."
+              className="w-full pl-10 pr-4 py-3 rounded-2xl border bg-white dark:bg-slate-800 dark:text-white text-sm"
+            />
+          </div>
+
+          {/* BUTTON */}
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="hidden lg:flex items-center gap-2 px-4 py-3 bg-queen-navy text-white font-bold text-sm rounded-2xl"
+          >
+            <Plus size={18} />
+            Tambah
+          </button>
+        </div>
+      </div>
+
+      {/* TABLE DESKTOP */}
+      <div className="hidden lg:block bg-white dark:bg-slate-800 rounded-3xl border overflow-hidden">
+        <div className="max-h-[420px] overflow-y-auto">
+          <table className="w-full text-sm">
+            <thead className="sticky top-0 bg-gray-50 dark:bg-slate-900 text-xs uppercase text-gray-400">
+              <tr>
+                <th className="px-6 py-4 text-left">Invoice</th>
+                <th className="px-6 py-4 text-left">Metode</th>
+                <th className="px-6 py-4 text-left">Jumlah</th>
+                <th className="px-6 py-4 text-left">Tanggal</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="text-center py-10">
+                    Loading...
+                  </td>
+                </tr>
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="text-center py-10">
+                    Data tidak ditemukan
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((p) => (
+                  <tr key={p.id_payment} className="border-t">
+                    <td className="px-6 py-5 font-bold text-queen-gold">
+                      {p.kode_invoice}
+                    </td>
+
+                    <td className="px-6 py-5 flex items-center gap-2">
+                      {getIcon(p.metode)}
+                      {p.metode}
+                    </td>
+
+                    <td className="px-6 py-5 font-bold">
+                      Rp {formatRupiah(p.jumlah)}
+                    </td>
+
+                    <td className="px-6 py-5 text-xs text-gray-500">
+                      {new Date(p.tanggal_bayar).toLocaleString("id-ID")}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* MOBILE */}
+      <div className="lg:hidden space-y-4">
+        {loading ? (
+          <div className="text-center py-10">Loading...</div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-10">Data tidak ditemukan</div>
+        ) : (
+          filtered.map((p) => (
+            <div
+              key={p.id_payment}
+              className="bg-white dark:bg-slate-800 rounded-3xl p-5 border"
+            >
+              <div className="flex justify-between">
+                <div>
+                  <p className="text-xs text-queen-gold font-bold">
+                    {p.kode_invoice}
+                  </p>
+                  <div className="flex items-center gap-2 mt-2">
+                    {getIcon(p.metode)}
+                    {p.metode}
+                  </div>
+                </div>
+
+                <p className="font-bold">Rp {formatRupiah(p.jumlah)}</p>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* FLOAT BUTTON */}
+      <div className="lg:hidden fixed bottom-24 right-5">
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-queen-navy font-semibold text-white text-xs rounded-xl shadow"
+          className="w-14 h-14 rounded-full bg-queen-navy text-white flex items-center justify-center"
         >
-          <Plus size={16} />
-          Tambah Pembayaran
+          <Plus />
         </button>
       </div>
 
-      {/* LIST */}
-      <div className=" mt-4 space-y-3">
-        {payments.map((item) => (
-          <div
-            key={item.id}
-            className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200/50 dark:border-slate-700/50"
-          >
-            <div className="flex justify-between items-center">
-              {/* LEFT */}
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-indigo-100 text-indigo-600">
-                  {getIcon(item.type)}
-                </div>
-
-                <div>
-                  <p className="text-sm font-semibold dark:text-white">
-                    {item.name}
-                  </p>
-
-                  {item.number && (
-                    <p className="text-xs text-slate-400">{item.number}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* STATUS */}
-              <div className="flex items-center gap-3">
-                <span
-                  className={`text-[10px] px-2 py-1 rounded-lg ${
-                    item.active
-                      ? "bg-emerald-100 text-emerald-600"
-                      : "bg-slate-200 text-slate-500"
-                  }`}
-                >
-                  {item.active ? "Aktif" : "Nonaktif"}
-                </span>
-
-                <button onClick={() => toggleActive(item.id)}>
-                  {item.active ? (
-                    <ToggleRight size={22} className="text-indigo-600" />
-                  ) : (
-                    <ToggleLeft size={22} className="text-slate-400" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* 🔥 IMAGE PREVIEW (QRIS) */}
-            {item.image && (
-              <div className="mt-3">
-                <img
-                  src={item.image}
-                  alt="QR"
-                  className="w-32 h-32 object-cover rounded-xl border"
-                />
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* =========================
-          MODAL
-      ========================= */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 w-full max-w-sm">
-            <h3 className="text-sm font-semibold mb-4 dark:text-white">
-              Tambah Metode
-            </h3>
-
-            {/* NAME */}
-            <input
-              type="text"
-              placeholder="Nama metode"
-              className="w-full mb-3 p-3 rounded-xl border dark:bg-slate-900"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-            />
-
-            {/* TYPE */}
-            <select
-              className="w-full mb-3 p-3 rounded-xl border dark:bg-slate-900"
-              value={form.type}
-              onChange={(e) => setForm({ ...form, type: e.target.value })}
-            >
-              <option value="qris">QRIS</option>
-              <option value="bank">Transfer Bank</option>
-              <option value="cash">Cash</option>
-            </select>
-
-            {/* BANK NUMBER */}
-            {form.type === "bank" && (
-              <input
-                type="text"
-                placeholder="Nomor rekening"
-                className="w-full mb-3 p-3 rounded-xl border dark:bg-slate-900"
-                value={form.number}
-                onChange={(e) => setForm({ ...form, number: e.target.value })}
-              />
-            )}
-
-            {/* 🔥 UPLOAD QR */}
-            {form.type === "qris" && (
-              <div className="mb-3">
-                <label className="text-xs text-slate-500 mb-1 block">
-                  Upload QR
-                </label>
-
-                <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700">
-                  <ImagePlus size={20} className="mb-2" />
-                  <span className="text-xs text-slate-500">
-                    Klik untuk upload QR
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    hidden
-                    onChange={handleImageUpload}
-                  />
-                </label>
-
-                {/* PREVIEW */}
-                {form.image && (
-                  <img
-                    src={form.image}
-                    alt="preview"
-                    className="mt-3 w-28 h-28 rounded-lg border"
-                  />
-                )}
-              </div>
-            )}
-
-            {/* ACTION */}
-            <div className="flex gap-2 mt-4">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="flex-1 py-2 bg-slate-200 rounded-xl text-sm"
-              >
-                Batal
-              </button>
-              <button
-                onClick={handleAdd}
-                className="flex-1 py-2 bg-queen-navy text-white rounded-xl text-sm"
-              >
-                Simpan
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* MODAL */}
+      <PaymentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        form={form}
+        setForm={setForm}
+        onSubmit={handleSubmit}
+        loading={loadingSubmit}
+      />
     </div>
   );
 };
 
-export default AdminPayment;
+export default Payments;
