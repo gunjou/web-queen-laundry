@@ -1,254 +1,145 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
+  MessageCircle,
   Search,
-  Clock,
-  Timer,
   ChevronRight,
   Scale as ScaleIcon,
-  Truck,
+  Plus,
 } from "lucide-react";
+import Swal from "sweetalert2";
+import { Pencil, Trash2 } from "lucide-react";
+
+import OrderModal from "../components/modal/OrderModal";
+import {
+  getOrders,
+  createOrder,
+  updateOrder,
+  deleteOrder,
+} from "../api/orders/orders.api";
+
+const statusTabs = ["SEMUA", "DITERIMA", "DIPROSES", "SELESAI", "DIAMBIL"];
 
 const OrderList = () => {
-  const [serviceTab, setServiceTab] = useState("Semua");
-  const [processTab, setProcessTab] = useState("Semua");
+  const [orders, setOrders] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusTab, setStatusTab] = useState("SEMUA");
 
-  const orders = [
-    // ===== REGULER =====
-    {
-      id: "QN-001",
-      customer: "Aniki",
-      type: "Reguler",
-      service: "Cuci Setrika",
-      qty: "5.0",
-      total: 35000,
-      entryTime: "10:30",
-      estimateTime: "Besok",
-      status: "Diterima",
-      payment: "Lunas",
-    },
-    {
-      id: "QN-002",
-      customer: "Budi",
-      type: "Reguler",
-      service: "Cuci Kering",
-      qty: "3.0",
-      total: 24000,
-      entryTime: "11:00",
-      estimateTime: "Hari ini",
-      status: "Dicuci",
-      payment: "Belum Lunas",
-    },
-    {
-      id: "QN-003",
-      customer: "Siska",
-      type: "Reguler",
-      service: "Express",
-      qty: "2.0",
-      total: 30000,
-      entryTime: "12:00",
-      estimateTime: "Hari ini",
-      status: "Setrika",
-      payment: "Lunas",
-    },
-    {
-      id: "QN-004",
-      customer: "Rudi",
-      type: "Reguler",
-      service: "Cuci Setrika",
-      qty: "4.0",
-      total: 28000,
-      entryTime: "13:00",
-      estimateTime: "Besok",
-      status: "Bisa Diambil",
-      payment: "Lunas",
-    },
-    {
-      id: "QN-005",
-      customer: "Dewi",
-      type: "Reguler",
-      service: "Cuci",
-      qty: "3.5",
-      total: 20000,
-      entryTime: "14:00",
-      estimateTime: "Hari ini",
-      status: "Selesai",
-      payment: "Lunas",
-    },
+  const [loading, setLoading] = useState(false);
+  const [tableLoading, setTableLoading] = useState(true);
 
-    // ===== PICKUP =====
-    {
-      id: "QN-006",
-      customer: "Joko",
-      type: "Pickup",
-      service: "Cuci Setrika",
-      qty: "4.0",
-      total: 30000,
-      entryTime: "09:00",
-      estimateTime: "Hari ini",
-      status: "Menunggu Pickup", // 🔥 highlight
-      payment: "Belum Lunas",
-    },
-    {
-      id: "QN-007",
-      customer: "Ayu",
-      type: "Pickup",
-      service: "Cuci",
-      qty: "2.0",
-      total: 15000,
-      entryTime: "10:00",
-      estimateTime: "Hari ini",
-      status: "Dijemput",
-      payment: "Lunas",
-    },
-    {
-      id: "QN-008",
-      customer: "Rian",
-      type: "Pickup",
-      service: "Express",
-      qty: "2.5",
-      total: 35000,
-      entryTime: "11:00",
-      estimateTime: "Hari ini",
-      status: "Diproses",
-      payment: "Lunas",
-    },
-    {
-      id: "QN-009",
-      customer: "Maya",
-      type: "Pickup",
-      service: "Cuci",
-      qty: "3.0",
-      total: 20000,
-      entryTime: "12:00",
-      estimateTime: "Hari ini",
-      status: "Selesai",
-      payment: "Lunas",
-    },
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingOrder, setEditingOrder] = useState(null);
 
-    // ===== PICKUP + DELIVERY =====
-    {
-      id: "QN-010",
-      customer: "Fajar",
-      type: "Pickup & Delivery",
-      service: "Cuci Setrika",
-      qty: "5.0",
-      total: 40000,
-      entryTime: "08:00",
-      estimateTime: "Hari ini",
-      status: "Menunggu Pickup", // 🔥 highlight
-      payment: "Belum Lunas",
-    },
-    {
-      id: "QN-011",
-      customer: "Lina",
-      type: "Pickup & Delivery",
-      service: "Express",
-      qty: "2.0",
-      total: 30000,
-      entryTime: "09:30",
-      estimateTime: "Hari ini",
-      status: "Diproses",
-      payment: "Lunas",
-    },
-    {
-      id: "QN-012",
-      customer: "Andre",
-      type: "Pickup & Delivery",
-      service: "Cuci",
-      qty: "3.0",
-      total: 20000,
-      entryTime: "10:30",
-      estimateTime: "Hari ini",
-      status: "Dikirim",
-      payment: "Lunas",
-    },
-    {
-      id: "QN-013",
-      customer: "Nina",
-      type: "Pickup & Delivery",
-      service: "Cuci",
-      qty: "3.5",
-      total: 25000,
-      entryTime: "11:30",
-      estimateTime: "Hari ini",
-      status: "Selesai",
-      payment: "Lunas",
-    },
-  ];
+  useEffect(() => {
+    fetchOrders();
+  }, []);
 
-  const serviceTabs = ["Semua", "Reguler", "Pickup", "Pickup & Delivery"];
-
-  const processMap = {
-    Reguler: [
-      "Semua",
-      "Diterima",
-      "Dicuci",
-      "Setrika",
-      "Bisa Diambil",
-      "Selesai",
-    ],
-    Pickup: ["Semua", "Diterima", "Dijemput", "Dicuci", "Setrika", "Selesai"],
-    "Pickup & Delivery": [
-      "Semua",
-      "Diterima",
-      "Dijemput",
-      "Dicuci",
-      "Setrika",
-      "Diantar",
-      "Selesai",
-    ],
-    Semua: [
-      "Semua",
-      "Diterima",
-      "Dijemput",
-      "Dicuci",
-      "Setrika",
-      "Diantar",
-      "Bisa Diambil",
-      "Selesai",
-    ],
+  const fetchOrders = async () => {
+    try {
+      setTableLoading(true);
+      const data = await getOrders();
+      setOrders(Array.isArray(data) ? data : []);
+    } catch (err) {
+      Swal.fire("Error", err.message || "Gagal mengambil data", "error");
+    } finally {
+      setTableLoading(false);
+    }
   };
 
-  // 🔥 DETECT PICKUP BELUM DIJEMPUT
-  const isPickupPending = (order) => {
-    return (
-      (order.type === "Pickup" || order.type === "Pickup & Delivery") &&
-      order.status !== "Dijemput"
-    );
+  const filteredOrders = useMemo(() => {
+    return orders.filter((order) => {
+      const keyword = searchTerm.toLowerCase();
+
+      const matchSearch =
+        order.customer?.toLowerCase().includes(keyword) ||
+        order.kode_invoice?.toLowerCase().includes(keyword) ||
+        order.service?.toLowerCase().includes(keyword);
+
+      const matchStatus =
+        statusTab === "SEMUA" || order.order_status === statusTab;
+
+      return matchSearch && matchStatus;
+    });
+  }, [orders, searchTerm, statusTab]);
+
+  const handleSubmitOrder = async (payload) => {
+    try {
+      setLoading(true);
+
+      if (editingOrder) {
+        await updateOrder(editingOrder.id_order, payload);
+      } else {
+        await createOrder(payload);
+      }
+
+      await fetchOrders();
+
+      setIsModalOpen(false);
+      setEditingOrder(null);
+
+      Swal.fire("Berhasil", "Order berhasil disimpan", "success");
+    } catch (err) {
+      Swal.fire("Error", err.message || "Gagal menyimpan order", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // 🔥 FILTER
-  const filteredOrders = orders.filter((o) => {
-    const matchService = serviceTab === "Semua" || o.type === serviceTab;
-    const matchProcess = processTab === "Semua" || o.status === processTab;
+  const handleDelete = async (id) => {
+    const confirm = await Swal.fire({
+      title: "Hapus order?",
+      text: "Data tidak bisa dikembalikan",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, hapus",
+      cancelButtonText: "Batal",
+    });
 
-    return matchService && matchProcess;
-  });
+    if (!confirm.isConfirmed) return;
 
-  // 🔥 BADGE COUNT (HANYA SERVICE)
-  const getServiceCount = (type) => {
-    return orders.filter((o) => o.type === type).length;
+    try {
+      await deleteOrder(id);
+      await fetchOrders();
+
+      Swal.fire("Berhasil", "Order berhasil dihapus", "success");
+    } catch (err) {
+      Swal.fire("Error", err.message || "Gagal menghapus order", "error");
+    }
+  };
+
+  const handleStatusChange = async (order, newStatus) => {
+    try {
+      await updateOrder(order.id_order, {
+        customer: order.customer,
+        service: order.service,
+        berat: order.berat,
+        harga_final: order.harga_final,
+        order_status: newStatus,
+        payment_status: order.payment_status,
+      });
+
+      await fetchOrders();
+    } catch (err) {
+      Swal.fire("Error", err.message || "Gagal update status", "error");
+    }
   };
 
   const getStatusStyle = (status) => {
     switch (status) {
-      case "Selesai":
-        return "bg-green-100 text-green-700 border border-green-200 dark:bg-green-500/20 dark:text-green-300 dark:border-green-500/20";
+      case "DITERIMA":
+        return "bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-slate-300";
 
-      case "Dicuci":
-        return "bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/20";
+      case "DIPROSES":
+        return "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300";
 
-      case "Setrika":
-        return "bg-indigo-100 text-indigo-700 border border-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/20";
+      case "SELESAI":
+        return "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300";
 
-      case "Dijemput":
-        return "bg-yellow-100 text-yellow-700 border border-yellow-200 dark:bg-yellow-500/20 dark:text-yellow-300 dark:border-yellow-500/20";
-
-      case "Diantar":
-        return "bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-500/20";
+      case "DIAMBIL":
+        return "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300";
 
       default:
-        return "bg-gray-100 text-gray-700 border border-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600";
+        return "bg-gray-100 text-gray-700";
     }
   };
 
@@ -256,7 +147,6 @@ const OrderList = () => {
     <div className="space-y-6 pb-24 lg:pb-10">
       {/* HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        {/* TEXT */}
         <div>
           <h1 className="text-2xl font-black text-queen-navy dark:text-white">
             Daftar Order
@@ -266,59 +156,43 @@ const OrderList = () => {
           </p>
         </div>
 
-        {/* SEARCH */}
-        <div className="relative w-full lg:w-[300px]">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            size={18}
-          />
-          <input
-            placeholder="Cari order..."
-            className="w-full pl-10 pr-4 py-3 rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white text-sm"
-          />
+        <div className="flex gap-3">
+          <div className="relative w-full lg:w-[300px]">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              size={18}
+            />
+            <input
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Cari invoice / customer..."
+              className="w-full pl-10 pr-4 py-3 rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white text-sm"
+            />
+          </div>
+
+          <button
+            onClick={() => {
+              setEditingOrder(null);
+              setIsModalOpen(true);
+            }}
+            className="px-5 py-3 rounded-2xl bg-queen-navy text-white font-bold flex items-center gap-2"
+          >
+            <Plus size={18} />
+            Tambah
+          </button>
         </div>
       </div>
 
-      {/* 🔥 SERVICE TAB + BADGE */}
-      <div className="flex gap-1.5 pb-1 overflow-x-auto">
-        {serviceTabs.map((tab) => {
-          const showBadge = tab === "Pickup" || tab === "Pickup & Delivery";
-
-          return (
-            <button
-              key={tab}
-              onClick={() => {
-                setServiceTab(tab);
-                setProcessTab("Semua");
-              }}
-              className={`px-3 py-1.5 rounded-full text-[11px] font-semibold flex items-center gap-1.5 transition-all ${
-                serviceTab === tab
-                  ? "bg-queen-navy text-white shadow-sm"
-                  : "bg-gray-100 dark:bg-slate-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-slate-700"
-              }`}
-            >
-              {tab}
-
-              {showBadge && (
-                <span className="bg-white/20 text-[9px] px-1.5 py-0.5 rounded-full">
-                  {getServiceCount(tab)}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* 🔥 PROCESS TAB */}
-      <div className="flex gap-1.5 pb-1 overflow-x-auto">
-        {processMap[serviceTab].map((tab) => (
+      {/* FILTER STATUS */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {statusTabs.map((tab) => (
           <button
             key={tab}
-            onClick={() => setProcessTab(tab)}
-            className={`px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all ${
-              processTab === tab
-                ? "bg-queen-gold text-white shadow-sm"
-                : "bg-gray-100 dark:bg-slate-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-slate-700"
+            onClick={() => setStatusTab(tab)}
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
+              statusTab === tab
+                ? "bg-queen-navy text-white"
+                : "bg-gray-100 dark:bg-slate-800 text-gray-500"
             }`}
           >
             {tab}
@@ -326,147 +200,229 @@ const OrderList = () => {
         ))}
       </div>
 
-      {/* ================= DESKTOP ================= */}
+      {/* DESKTOP */}
       <div className="hidden lg:block bg-white dark:bg-slate-800 rounded-3xl border overflow-hidden">
-        <div className="max-h-[420px] overflow-y-auto">
+        <div className="max-h-[520px] overflow-y-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 bg-gray-50 dark:bg-slate-900 text-xs uppercase text-gray-400">
               <tr>
-                <th className="px-6 py-4">Order</th>
+                <th className="px-6 py-4">Invoice</th>
+                <th className="px-6 py-4">Customer</th>
                 <th className="px-6 py-4">Layanan</th>
                 <th className="px-6 py-4">Berat</th>
-                <th className="px-6 py-4">Waktu</th>
                 <th className="px-6 py-4">Total</th>
                 <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4">Bayar</th>
                 <th className="px-6 py-4 text-right">Aksi</th>
               </tr>
             </thead>
 
             <tbody>
-              {filteredOrders.map((order) => (
-                <tr
-                  key={order.id}
-                  className={`border-t ${
-                    isPickupPending(order)
-                      ? "bg-red-50 dark:bg-red-900/20"
-                      : "hover:bg-slate-50 dark:hover:bg-slate-700/30"
-                  }`}
-                >
-                  <td className="px-6 py-5">
-                    <p className="text-xs text-queen-gold font-bold">
-                      {order.id}
-                    </p>
-
-                    <p className="font-black dark:text-white flex items-center">
-                      {order.customer}
-
-                      {isPickupPending(order) && (
-                        <span className="ml-2 flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full animate-pulse">
-                          <Truck size={10} />
-                          Pickup
-                        </span>
-                      )}
-                    </p>
-                  </td>
-
-                  <td className="px-6 py-5 font-bold dark:text-white">
-                    {order.service}
-                  </td>
-
-                  <td className="px-6 py-5 flex items-center gap-1 text-gray-500 dark:text-gray-400">
-                    <ScaleIcon size={14} /> {order.qty} kg
-                  </td>
-
-                  <td className="px-6 py-5 text-xs">
-                    <div className="flex items-center gap-1 text-gray-400">
-                      <Clock size={12} /> {order.entryTime}
+              {tableLoading ? (
+                <tr>
+                  <td colSpan={8} className="px-6 py-10 text-center">
+                    <div className="flex flex-col items-center justify-center gap-3 text-slate-400">
+                      <div className="w-8 h-8 border-4 border-slate-200 border-t-queen-navy rounded-full animate-spin"></div>
+                      <p className="text-sm font-medium">
+                        Memuat data order...
+                      </p>
                     </div>
-                    <div className="flex items-center gap-1 font-bold text-queen-navy dark:text-queen-gold">
-                      <Timer size={12} /> {order.estimateTime}
-                    </div>
-                  </td>
-
-                  <td className="px-6 py-5">
-                    <p className="font-black dark:text-white">
-                      Rp {order.total.toLocaleString()}
-                    </p>
-                  </td>
-
-                  <td className="px-6 py-5">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-bold  ${getStatusStyle(
-                        order.status
-                      )}`}
-                    >
-                      {order.status}
-                    </span>
-                  </td>
-
-                  <td className="px-6 py-5 text-right">
-                    <button className="p-2 hover:bg-queen-navy hover:text-white rounded-xl">
-                      <ChevronRight size={18} />
-                    </button>
                   </td>
                 </tr>
-              ))}
+              ) : filteredOrders.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={8}
+                    className="px-6 py-10 text-center text-gray-400"
+                  >
+                    Data tidak ditemukan
+                  </td>
+                </tr>
+              ) : (
+                filteredOrders.map((order) => (
+                  <tr
+                    key={order.id_order}
+                    className="border-t hover:bg-slate-50 dark:hover:bg-slate-700/30"
+                  >
+                    <td className="px-6 py-5 font-bold text-queen-gold">
+                      {order.kode_invoice}
+                    </td>
+
+                    <td className="px-6 py-5 font-semibold dark:text-white">
+                      {order.customer}
+                    </td>
+
+                    <td className="px-6 py-5 dark:text-white">
+                      {order.service}
+                    </td>
+
+                    <td className="px-6 py-5 text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <ScaleIcon size={14} />
+                        {order.berat} kg
+                      </span>
+                    </td>
+
+                    <td className="px-6 py-5 font-bold dark:text-white">
+                      Rp {Number(order.harga_final).toLocaleString("id-ID")}
+                    </td>
+
+                    <td className="px-6 py-5">
+                      <select
+                        value={order.order_status}
+                        onChange={(e) =>
+                          handleStatusChange(order, e.target.value)
+                        }
+                        className={`px-3 py-2 rounded-xl text-xs font-bold outline-none ${getStatusStyle(
+                          order.order_status
+                        )}`}
+                      >
+                        <option value="DITERIMA">DITERIMA</option>
+                        <option value="DIPROSES">DIPROSES</option>
+                        <option value="SELESAI">SELESAI</option>
+                        <option value="DIAMBIL">DIAMBIL</option>
+                      </select>
+                    </td>
+
+                    <td className="px-6 py-5">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-bold ${
+                          order.payment_status === "LUNAS"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {order.payment_status}
+                      </span>
+                    </td>
+
+                    <td className="px-6 py-5 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => setEditingOrder(order)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-xl transition-colors"
+                          title="Edit"
+                        >
+                          <Pencil size={18} />
+                        </button>
+
+                        <button
+                          onClick={() => handleDelete(order.id_order)}
+                          className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors"
+                          title="Hapus"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* ================= MOBILE ================= */}
+      {/* MOBILE */}
       <div className="lg:hidden space-y-4">
-        {filteredOrders.map((order) => (
-          <div
-            key={order.id}
-            className={`p-5 rounded-3xl shadow ${
-              isPickupPending(order)
-                ? "bg-red-50 dark:bg-red-900/20 border border-red-200"
-                : "bg-white dark:bg-slate-800"
-            }`}
-          >
-            <div className="flex justify-between mb-3">
-              <div>
-                <p className="text-xs text-queen-gold font-bold">{order.id}</p>
-                <h3 className="font-black dark:text-white flex items-center">
-                  {order.customer}
+        {tableLoading ? (
+          <div className="flex flex-col items-center justify-center py-10 text-slate-400">
+            <div className="w-8 h-8 border-4 border-slate-200 border-t-queen-navy rounded-full animate-spin" />
+            <p className="text-sm mt-2">Memuat data order...</p>
+          </div>
+        ) : filteredOrders.length === 0 ? (
+          <div className="text-center text-gray-400 py-10">
+            Data tidak ditemukan
+          </div>
+        ) : (
+          filteredOrders.map((order) => (
+            <div
+              key={order.id_order}
+              className="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-sm border border-slate-100 dark:border-slate-700"
+            >
+              {/* HEADER */}
+              <div className="flex justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold text-queen-gold">
+                    {order.kode_invoice}
+                  </p>
 
-                  {isPickupPending(order) && (
-                    <span className="ml-2 flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full animate-pulse">
-                      <Truck size={10} />
-                      Pickup
-                    </span>
-                  )}
-                </h3>
+                  <h3 className="mt-1 font-black text-slate-900 dark:text-white">
+                    {order.customer}
+                  </h3>
+
+                  <p className="text-sm text-gray-500 mt-1">{order.service}</p>
+                </div>
+
+                <span
+                  className={`px-3 py-1 rounded-full text-[10px] font-bold h-fit ${getStatusStyle(
+                    order.order_status
+                  )}`}
+                >
+                  {order.order_status}
+                </span>
               </div>
 
-              <span
-                className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusStyle(
-                  order.status
-                )}`}
-              >
-                {order.status}
-              </span>
-            </div>
+              {/* INFO */}
+              <div className="mt-4 flex justify-between text-sm">
+                <p className="text-gray-500">{order.berat} kg</p>
+                <p className="font-black text-slate-900 dark:text-white">
+                  Rp {Number(order.harga_final).toLocaleString("id-ID")}
+                </p>
+              </div>
 
-            <p className="font-bold dark:text-white">{order.service}</p>
-            <p className="text-xs text-gray-500">{order.qty} kg</p>
+              {/* ACTIONS (ICON ONLY) */}
+              <div className="mt-4 flex justify-end gap-2">
+                {/* WHATSAPP (NEW) */}
+                <a
+                  href={`https://wa.me/${
+                    order.customer_no?.replace(/^0/, "62") || ""
+                  }`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="p-3 rounded-2xl bg-green-100 text-green-600 active:scale-95 transition"
+                  title="WhatsApp Customer"
+                >
+                  <MessageCircle size={18} />
+                </a>
 
-            <div className="flex justify-between mt-3">
-              <p className="font-black dark:text-white">
-                Rp {order.total.toLocaleString()}
-              </p>
-              <p
-                className={`text-xs font-bold ${
-                  order.payment === "Lunas" ? "text-green-500" : "text-red-500"
-                }`}
-              >
-                {order.payment}
-              </p>
+                {/* EDIT */}
+                <button
+                  onClick={() => {
+                    setEditingOrder(order);
+                    setIsModalOpen(true);
+                  }}
+                  className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-700 text-blue-500 active:scale-95 transition"
+                  title="Edit"
+                >
+                  <Pencil size={18} />
+                </button>
+
+                {/* DELETE */}
+                <button
+                  onClick={() => handleDelete(order.id_order)}
+                  className="p-3 rounded-2xl bg-red-100 text-red-600 active:scale-95 transition"
+                  title="Hapus"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
+
+      {/* MODAL */}
+      <OrderModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingOrder(null);
+        }}
+        onSubmit={handleSubmitOrder}
+        loading={loading}
+        initialData={editingOrder}
+      />
     </div>
   );
 };

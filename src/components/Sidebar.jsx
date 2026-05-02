@@ -32,7 +32,7 @@ const menuSections = [
     title: "MASTER DATA",
     items: [
       { name: "Customer", icon: Users, path: "/customers" },
-      { name: "Karyawan", icon: IdCardLanyard, path: "/karyawan" },
+      // { name: "Karyawan", icon: IdCardLanyard, path: "/karyawan" },
       { name: "Layanan", icon: Package, path: "/services" },
     ],
   },
