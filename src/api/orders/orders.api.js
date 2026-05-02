@@ -79,11 +79,11 @@ export const updateOrder = async (id, payload) => {
 // UPDATE STATUS ORDER
 // ==============================
 export const updateOrderStatus = async (id, status) => {
-  const res = await fetch(`${API_BASE_URL}/orders/${id}`, {
+  const res = await fetch(`${API_BASE_URL}/orders/${id}/status`, {
     method: "PUT",
     headers: getAuthHeaders(),
     body: JSON.stringify({
-      order_status: status,
+      status: status,
     }),
   });
 

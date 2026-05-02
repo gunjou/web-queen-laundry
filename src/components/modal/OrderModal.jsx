@@ -14,7 +14,6 @@ import {
   Plus,
 } from "lucide-react";
 import Swal from "sweetalert2";
-
 import {
   getCustomers,
   createCustomer,
@@ -25,14 +24,25 @@ import { createOrder } from "../../api/orders/orders.api";
 const OrderModal = ({ isOpen, onClose, onSuccess }) => {
   const [paymentStatus, setPaymentStatus] = useState("Belum Lunas");
   const [paymentMethod, setPaymentMethod] = useState("Cash");
+  const [totalHarga, setTotalHarga] = useState(0);
 
   const [serviceType, setServiceType] = useState("reguler");
-  const [address, setAddress] = useState("");
   const [isExpress, setIsExpress] = useState(false);
 
   const [customers, setCustomers] = useState([]);
   const [services, setServices] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+
+  const [showServiceDropdown, setShowServiceDropdown] = useState(false);
+  const [serviceQuery, setServiceQuery] = useState("");
+
+  const filteredServices = useMemo(() => {
+    if (!serviceQuery.trim()) return services;
+
+    const q = serviceQuery.toLowerCase();
+
+    return services.filter((s) => s.nama?.toLowerCase().includes(q));
+  }, [services, serviceQuery]);
 
   const [loading, setLoading] = useState(false);
 
@@ -42,6 +52,28 @@ const OrderModal = ({ isOpen, onClose, onSuccess }) => {
     berat: "",
     catatan: "",
   });
+
+  const selectedService = useMemo(() => {
+    return services.find((s) => s.id_service == form.id_service);
+  }, [services, form.id_service]);
+
+  useEffect(() => {
+    if (!selectedService || !form.berat) {
+      setTotalHarga(0);
+      return;
+    }
+
+    const berat = Number(form.berat);
+    const harga = Number(selectedService.harga);
+
+    setTotalHarga(berat * harga);
+  }, [selectedService, form.berat]);
+
+  const getAutoCatatan = () => {
+    if (serviceType === "pickup") return "pickup";
+    if (serviceType === "pickup_delivery") return "pickup_delivery";
+    return "reguler";
+  };
 
   // customer picker
   const [customerQuery, setCustomerQuery] = useState("");
@@ -148,7 +180,6 @@ const OrderModal = ({ isOpen, onClose, onSuccess }) => {
       catatan: "",
     });
 
-    setAddress("");
     setIsExpress(false);
     setPaymentStatus("Belum Lunas");
     setPaymentMethod("Cash");
@@ -177,17 +208,12 @@ const OrderModal = ({ isOpen, onClose, onSuccess }) => {
       return;
     }
 
-    if (serviceType !== "reguler" && !address) {
-      Swal.fire("Alamat wajib diisi", "", "warning");
-      return;
-    }
-
     try {
       setLoading(true);
 
       const payload = {
         berat: Number(form.berat),
-        catatan: form.catatan || "",
+        catatan: getAutoCatatan(),
         id_customer: Number(form.id_customer),
         id_service: Number(form.id_service),
         langsung_bayar: paymentStatus === "Lunas",
@@ -471,67 +497,133 @@ const OrderModal = ({ isOpen, onClose, onSuccess }) => {
             </div>
           </div>
 
-          {serviceType !== "reguler" && (
-            <div className="space-y-2">
-              <label className="label">
-                <MapPin size={14} /> Alamat
-              </label>
-              <textarea
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                rows={3}
-                className="input resize-none"
-              />
-            </div>
-          )}
+          {/* SERVICE */}
+          {/* SERVICE */}
+          <div className="space-y-2 relative">
+            <label className="label">
+              <Package size={14} /> Layanan
+            </label>
 
-          {/* SERVICE + BERAT */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="label">
-                <Package size={14} /> Layanan
-              </label>
+            {!form.id_service ? (
+              <>
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="Cari layanan..."
+                  value={serviceQuery}
+                  onChange={(e) => {
+                    setServiceQuery(e.target.value);
+                    setShowServiceDropdown(true);
+                  }}
+                  onFocus={() => setShowServiceDropdown(true)}
+                />
 
-              <select
-                className="input"
-                value={form.id_service}
-                onChange={(e) => handleChange("id_service", e.target.value)}
-              >
-                <option value="">Pilih layanan</option>
-                {services.map((service) => (
-                  <option key={service.id_service} value={service.id_service}>
-                    {service.nama_service}
-                  </option>
-                ))}
-              </select>
-            </div>
+                {showServiceDropdown && serviceQuery.trim() && (
+                  <div className="absolute z-50 mt-1 w-full rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl max-h-56 overflow-y-auto">
+                    {filteredServices.length > 0 ? (
+                      filteredServices.map((service) => (
+                        <button
+                          key={service.id_service}
+                          type="button"
+                          onClick={() => {
+                            handleChange("id_service", service.id_service);
+                            setServiceQuery(service.nama);
+                            setShowServiceDropdown(false);
+                          }}
+                          className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-slate-700 transition"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-slate-800 dark:text-white truncate">
+                                {service.nama}
+                              </p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400">
+                                {service.tipe}
+                              </p>
+                            </div>
 
-            <div className="space-y-2">
-              <label className="label">
-                <Scale size={14} /> Berat
-              </label>
+                            <p className="text-sm font-black text-queen-navy dark:text-queen-gold whitespace-nowrap">
+                              Rp {Number(service.harga).toLocaleString("id-ID")}
+                            </p>
+                          </div>
+                        </button>
+                      ))
+                    ) : (
+                      <div className="px-4 py-3 text-sm text-gray-500">
+                        Layanan tidak ditemukan
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-500/10 dark:border-emerald-500/20 px-4 py-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="h-10 w-10 rounded-2xl bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-sm font-black">
+                    {selectedService?.nama?.charAt(0)}
+                  </div>
 
-              <input
-                type="number"
-                step="0.1"
-                className="input"
-                value={form.berat}
-                onChange={(e) => handleChange("berat", e.target.value)}
-              />
-            </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300 truncate">
+                      {selectedService?.nama}
+                    </p>
+                    <p className="text-[11px] text-emerald-600 dark:text-emerald-400 truncate">
+                      {selectedService?.tipe}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleChange("id_service", "");
+                    setServiceQuery("");
+                    setShowServiceDropdown(false);
+                  }}
+                  className="p-1 text-emerald-700 hover:bg-emerald-100 dark:hover:bg-emerald-500/10 rounded-full"
+                >
+                  <XCircle size={18} />
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* CATATAN */}
-          <div className="space-y-2">
-            <label className="label">Catatan</label>
-            <textarea
-              rows={3}
-              className="input resize-none"
-              value={form.catatan}
-              onChange={(e) => handleChange("catatan", e.target.value)}
+          {/* BERAT - DIPINDAH KE BAWAH */}
+          <div className="space-y-2 mt-4">
+            <label className="label">
+              <Scale size={14} /> Berat (Kg)
+            </label>
+
+            <input
+              type="number"
+              step="0.1"
+              className="input"
+              placeholder="Contoh: 3.5"
+              value={form.berat}
+              onChange={(e) => handleChange("berat", e.target.value)}
             />
+
+            {/* helper UX kecil */}
+            <p className="text-[11px] text-gray-400">
+              Masukkan berat cucian dalam kilogram
+            </p>
           </div>
 
+          <div className="p-5 bg-queen-navy/5 dark:bg-slate-700/50 rounded-2xl border border-dashed border-queen-navy/20 dark:border-slate-600">
+            <label className="text-[10px] font-bold text-queen-navy dark:text-queen-gold uppercase tracking-wider">
+              Total Tagihan
+            </label>
+
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-2xl font-bold text-queen-navy dark:text-white">
+                Rp
+              </span>
+
+              <div className="text-3xl font-black text-queen-navy dark:text-white w-full">
+                {totalHarga.toLocaleString("id-ID")}
+              </div>
+            </div>
+          </div>
           {/* PAYMENT METHOD */}
           <div className="space-y-2">
             <label className="label">

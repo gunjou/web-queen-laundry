@@ -15,6 +15,7 @@ import {
   createOrder,
   updateOrder,
   deleteOrder,
+  updateOrderStatus,
 } from "../api/orders/orders.api";
 
 const statusTabs = ["SEMUA", "DITERIMA", "DIPROSES", "SELESAI", "DIAMBIL"];
@@ -107,18 +108,15 @@ const OrderList = () => {
     }
   };
 
-  const handleStatusChange = async (order, newStatus) => {
+  const handleStatusChange = async (orderId, newStatus) => {
     try {
-      await updateOrder(order.id_order, {
-        customer: order.customer,
-        service: order.service,
-        berat: order.berat,
-        harga_final: order.harga_final,
-        order_status: newStatus,
-        payment_status: order.payment_status,
-      });
+      await updateOrderStatus(orderId, newStatus);
 
-      await fetchOrders();
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id_order === orderId ? { ...o, order_status: newStatus } : o
+        )
+      );
     } catch (err) {
       Swal.fire("Error", err.message || "Gagal update status", "error");
     }
@@ -271,7 +269,7 @@ const OrderList = () => {
                       <select
                         value={order.order_status}
                         onChange={(e) =>
-                          handleStatusChange(order, e.target.value)
+                          handleStatusChange(order.id_order, e.target.value)
                         }
                         className={`px-3 py-2 rounded-xl text-xs font-bold outline-none ${getStatusStyle(
                           order.order_status
