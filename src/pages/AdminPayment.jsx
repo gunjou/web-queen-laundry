@@ -150,7 +150,7 @@ const Payments = () => {
             className="hidden lg:flex items-center gap-2 px-4 py-3 bg-queen-navy text-white font-bold text-sm rounded-2xl"
           >
             <Plus size={18} />
-            Tambah
+            Bayar
           </button>
         </div>
       </div>
@@ -171,8 +171,13 @@ const Payments = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="text-center py-10">
-                    Loading...
+                  <td colSpan={8} className="px-6 py-10 text-center">
+                    <div className="flex flex-col items-center justify-center gap-3 text-slate-400">
+                      <div className="w-8 h-8 border-4 border-slate-200 border-t-queen-navy rounded-full animate-spin"></div>
+                      <p className="text-sm font-medium">
+                        Memuat data pembayaran...
+                      </p>
+                    </div>
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (

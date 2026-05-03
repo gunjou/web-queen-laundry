@@ -149,41 +149,42 @@ const Customers = () => {
             Kelola informasi pelanggan
           </p>
         </div>
+        <div className="flex gap-3 items-center">
+          <div className="relative w-full lg:w-[300px]">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              size={18}
+            />
+            <input
+              type="text"
+              placeholder="Cari nama, nomor HP, atau alamat..."
+              className="w-full pl-10 pr-4 py-3 rounded-2xl border bg-white dark:bg-slate-800 dark:text-white text-sm"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <button
+            onClick={handleOpenCreate}
+            className="hidden lg:flex items-center gap-2 px-4 py-3 bg-queen-navy text-white font-bold text-sm rounded-2xl"
+          >
+            <UserPlus size={18} />
+            Tambah Pelanggan
+          </button>
 
-        <button
-          onClick={handleOpenCreate}
-          className="flex items-center justify-center gap-2 px-6 py-3 bg-queen-navy text-white font-bold rounded-2xl"
-        >
-          <UserPlus size={20} />
-          Tambah Pelanggan
-        </button>
-      </div>
-
-      {/* SEARCH */}
-      <div className="relative">
-        <Search
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-          size={20}
-        />
-        <input
-          type="text"
-          placeholder="Cari nama, nomor HP, atau alamat..."
-          className="w-full pl-12 pr-4 py-4 rounded-2xl border bg-white dark:bg-slate-800 dark:text-white"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+          <div />
+        </div>
       </div>
 
       {/* DESKTOP TABLE */}
       <div className="hidden lg:block bg-white dark:bg-slate-800 rounded-3xl border overflow-hidden">
-        <div className="max-h-[280px] overflow-y-auto">
-          <table className="w-full text-left">
+        <div className="max-h-[350px] overflow-y-auto">
+          <table className="w-full text-sm text-left">
             <thead className="sticky top-0 bg-gray-50 dark:bg-slate-900 text-xs uppercase text-gray-400">
               <tr>
-                <th className="px-8 py-4">Nama</th>
-                <th className="px-8 py-4">Kontak</th>
-                <th className="px-8 py-4">Alamat</th>
-                <th className="px-8 py-4 text-right">Aksi</th>
+                <th className="px-6 py-4">Nama</th>
+                <th className="px-6 py-4">Kontak</th>
+                <th className="px-6 py-4">Alamat</th>
+                <th className="px-6 py-4 text-right">Aksi</th>
               </tr>
             </thead>
 
@@ -207,14 +208,14 @@ const Customers = () => {
                 </tr>
               ) : (
                 filteredCustomers.map((cust) => (
-                  <tr key={cust.id_customer}>
-                    <td className="px-8 py-5 font-semibold capitalize">
+                  <tr key={cust.id_customer} className="border-t">
+                    <td className="px-6 py-5 font-semibold capitalize">
                       {cust.nama}
                     </td>
-                    <td className="px-8 py-5">{cust.no_hp}</td>
-                    <td className="px-8 py-5">{cust.alamat}</td>
+                    <td className="px-6 py-5">{cust.no_hp}</td>
+                    <td className="px-6 py-5">{cust.alamat}</td>
 
-                    <td className="px-8 py-5 text-right">
+                    <td className="px-6 py-5 text-right">
                       <div className="flex justify-end gap-2">
                         <a
                           href={getWhatsappLink(cust.no_hp)}
@@ -318,6 +319,18 @@ const Customers = () => {
           ))
         )}
       </div>
+
+      {/* FLOAT BUTTON */}
+      <div className="lg:hidden fixed bottom-24 right-5">
+        <button
+          onClick={handleOpenCreate}
+          className="w-14 h-14 rounded-full bg-queen-navy text-white flex items-center justify-center shadow-lg active:scale-95 transition"
+          title="Tambah Pelanggan"
+        >
+          <UserPlus size={18} />
+        </button>
+      </div>
+
       {openModal && (
         <CustomerModal
           isOpen={openModal}

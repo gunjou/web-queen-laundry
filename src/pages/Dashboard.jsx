@@ -8,7 +8,9 @@ import ActivityCard from "../components/dashboard/ActivityCard";
 import OrderModal from "../components/modal/OrderModal";
 
 import { getOrderSummary } from "../api/orders/orders.api";
-import { ordersData, chartData, activityData } from "../data/dashboardData";
+import { getRevenueReport } from "../api/reports/reports.api";
+
+import { ordersData, activityData } from "../data/dashboardData";
 
 const Dashboard = () => {
   const [filter, setFilter] = useState("Minggu");
@@ -16,6 +18,9 @@ const Dashboard = () => {
 
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const [revenueData, setRevenueData] = useState([]);
+  const [revenueLoading, setRevenueLoading] = useState(false);
 
   const token = localStorage.getItem("token");
 
@@ -37,6 +42,51 @@ const Dashboard = () => {
     fetchSummary();
   }, [token]);
 
+  useEffect(() => {
+    if (!token) return;
+
+    const fetchRevenue = async () => {
+      try {
+        setRevenueLoading(true);
+
+        const now = new Date();
+        const month = now.getMonth() + 1;
+        const year = now.getFullYear();
+
+        let params = {};
+
+        if (filter === "Minggu") {
+          params = { type: "weekly" };
+        }
+
+        if (filter === "Bulan") {
+          params = {
+            type: "monthly",
+            month,
+            year,
+          };
+        }
+
+        if (filter === "Tahun") {
+          params = {
+            type: "yearly",
+            year,
+          };
+        }
+
+        const res = await getRevenueReport(params);
+        setRevenueData(Array.isArray(res) ? res : []);
+      } catch (err) {
+        console.error(err);
+        setRevenueData([]);
+      } finally {
+        setRevenueLoading(false);
+      }
+    };
+
+    fetchRevenue();
+  }, [filter, token]);
+
   if (!token) {
     window.location.href = "/login";
     return null;
@@ -47,7 +97,7 @@ const Dashboard = () => {
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-queen-navy dark:text-white">
+          <h1 className="text-xl md:text-2xl font-extrabold text-queen-navy dark:text-white">
             Dashboard
           </h1>
           <p className="text-sm text-gray-500">Ringkasan bisnis hari ini</p>
@@ -63,16 +113,15 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* STATS — FIXED */}
       <StatsGrid stats={summary} loading={loading} />
 
-      {/* CHART + ACTION */}
       <div className="grid lg:grid-cols-3 gap-6 items-start">
         <div className="lg:col-span-2">
           <RevenueChart
-            data={chartData[filter]}
+            data={revenueData}
             filter={filter}
             setFilter={setFilter}
+            loading={revenueLoading}
           />
         </div>
 
@@ -98,7 +147,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* CONTENT */}
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <RecentOrders orders={ordersData} />
@@ -107,7 +155,6 @@ const Dashboard = () => {
         <ActivityCard activities={activityData} />
       </div>
 
-      {/* FLOAT BUTTON */}
       <div className="lg:hidden fixed bottom-24 right-5 z-50">
         <button
           onClick={() => setIsModalOpen(true)}
@@ -117,7 +164,6 @@ const Dashboard = () => {
         </button>
       </div>
 
-      {/* MODAL */}
       <OrderModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );

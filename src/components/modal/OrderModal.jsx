@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
   X,
   XCircle,
@@ -20,12 +20,86 @@ import {
 } from "../../api/customers/customers.api";
 import { getServices } from "../../api/services/services.api";
 import { createOrder } from "../../api/orders/orders.api";
+import Receipt58mm from "../receipt/Receipt58mm";
 
 const OrderModal = ({ isOpen, onClose, onSuccess }) => {
   const [paymentStatus, setPaymentStatus] = useState("Belum Lunas");
-  const [paymentMethod, setPaymentMethod] = useState("Cash");
+  const [paymentMethod, setPaymentMethod] = useState("");
   const [totalHarga, setTotalHarga] = useState(0);
+  const [receiptData, setReceiptData] = useState(null);
+  const [showReceipt, setShowReceipt] = useState(false);
+  const printRef = useRef();
+  const handlePrint = () => {
+    if (!printRef.current) return;
 
+    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(
+      navigator.userAgent
+    );
+
+    if (isMobile) {
+      setShowReceipt(true);
+
+      setTimeout(() => {
+        window.print();
+      }, 300);
+
+      return;
+    }
+
+    const printContents = printRef.current.innerHTML;
+
+    const printWindow = window.open("", "_blank", "width=420,height=700");
+
+    if (!printWindow) {
+      Swal.fire(
+        "Popup diblokir",
+        "Izinkan pop-up browser agar struk bisa dicetak",
+        "warning"
+      );
+      return;
+    }
+
+    printWindow.document.open();
+    printWindow.document.write(`
+    <!doctype html>
+    <html>
+      <head>
+        <title>Print Receipt</title>
+        <style>
+          @page {
+            size: 58mm auto;
+            margin: 0;
+          }
+
+          html, body {
+            width: 58mm;
+            margin: 0;
+            padding: 0;
+            background: #fff;
+            font-family: monospace;
+          }
+
+          * {
+            box-sizing: border-box;
+          }
+        </style>
+      </head>
+      <body>
+        ${printContents}
+      </body>
+    </html>
+  `);
+
+    printWindow.document.close();
+
+    printWindow.onload = () => {
+      printWindow.focus();
+
+      setTimeout(() => {
+        printWindow.print();
+      }, 250);
+    };
+  };
   const [serviceType, setServiceType] = useState("reguler");
   const [isExpress, setIsExpress] = useState(false);
 
@@ -122,8 +196,7 @@ const OrderModal = ({ isOpen, onClose, onSuccess }) => {
     );
   }, [customers, customerQuery]);
 
-  if (!isOpen) return null;
-
+  if (!isOpen && !showReceipt) return null;
   const handleChange = (field, value) => {
     setForm((prev) => ({
       ...prev,
@@ -182,7 +255,7 @@ const OrderModal = ({ isOpen, onClose, onSuccess }) => {
 
     setIsExpress(false);
     setPaymentStatus("Belum Lunas");
-    setPaymentMethod("Cash");
+    setPaymentMethod("CASH");
     setServiceType("reguler");
 
     setCustomerQuery("");
@@ -220,16 +293,31 @@ const OrderModal = ({ isOpen, onClose, onSuccess }) => {
         metode: paymentMethod,
       };
 
-      await createOrder(payload);
+      const res = await createOrder(payload);
+
+      const receipt = {
+        kode_invoice: res.invoice || res.kode_invoice,
+        berat: form.berat,
+        customer: selectedCustomer,
+        service: selectedService,
+        total: totalHarga,
+        metode: paymentMethod,
+      };
+
+      setReceiptData(receipt);
+      setShowReceipt(true);
 
       Swal.fire({
         title: "Order berhasil dibuat",
         icon: "success",
-        confirmButtonColor: "#1B305B",
+        timer: 1000,
+        showConfirmButton: false,
       });
 
-      resetForm();
-      onClose();
+      setTimeout(() => {
+        handlePrint();
+      }, 300);
+
       if (onSuccess) onSuccess();
     } catch (error) {
       Swal.fire("Error", error.message || "Gagal membuat order", "error");
@@ -498,7 +586,6 @@ const OrderModal = ({ isOpen, onClose, onSuccess }) => {
           </div>
 
           {/* SERVICE */}
-          {/* SERVICE */}
           <div className="space-y-2 relative">
             <label className="label">
               <Package size={14} /> Layanan
@@ -636,8 +723,8 @@ const OrderModal = ({ isOpen, onClose, onSuccess }) => {
                 onChange={(e) => setPaymentMethod(e.target.value)}
                 className="input"
               >
-                <option>Cash</option>
-                <option>Transfer</option>
+                <option>CASH</option>
+                <option>TRANSFER</option>
                 <option>QRIS</option>
               </select>
             </div>
@@ -682,40 +769,96 @@ const OrderModal = ({ isOpen, onClose, onSuccess }) => {
       </div>
 
       <style>{`
-        .label {
-          font-size: 10px;
-          font-weight: 700;
-          text-transform: uppercase;
-          color: #9ca3af;
-          letter-spacing: 0.1em;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
+  .label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #9ca3af;
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
 
-        .input {
-          width: 100%;
-          padding: 14px 16px;
-          border-radius: 16px;
-          border: 1px solid #e5e7eb;
-          background: #f9fafb;
-          outline: none;
-        }
+  .input {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    outline: none;
+  }
 
-        .dark .input {
-          background: #0f172a;
-          border-color: #334155;
-          color: white;
-        }
+  .dark .input {
+    background: #0f172a;
+    border-color: #334155;
+    color: white;
+  }
 
-        .btn-toggle {
-          padding: 12px;
-          border-radius: 12px;
-          font-weight: bold;
-          font-size: 14px;
-          transition: 0.3s;
-        }
-      `}</style>
+  .btn-toggle {
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 14px;
+    transition: 0.3s;
+  }
+
+  @media print {
+    body * {
+      visibility: hidden !important;
+    }
+
+    #thermal-print,
+    #thermal-print * {
+      visibility: visible !important;
+    }
+
+    #thermal-print {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 58mm;
+      margin: 0;
+      padding: 0;
+      background: white;
+    }
+
+    button {
+      display: none !important;
+    }
+  }
+`}</style>
+      {showReceipt && receiptData && (
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-end sm:items-center justify-center">
+          <div className="bg-white w-full sm:w-auto max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-xl shadow-xl p-3">
+            <div ref={printRef} id="thermal-print">
+              <Receipt58mm data={receiptData} />
+            </div>
+
+            <div className="flex gap-2 mt-3 sticky bottom-0 bg-white pt-2">
+              <button
+                onClick={handlePrint}
+                className="flex-1 py-3 bg-queen-navy text-white rounded-lg"
+              >
+                Print
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowReceipt(false);
+                  setReceiptData(null);
+                  resetForm();
+                  onClose();
+                  onSuccess?.();
+                }}
+                className="flex-1 py-3 bg-black text-white rounded-lg"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

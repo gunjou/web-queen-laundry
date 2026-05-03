@@ -213,8 +213,8 @@ const PaymentModal = ({
               required
             >
               <option value="">Pilih metode</option>
-              <option value="Cash">Cash</option>
-              <option value="Transfer">Transfer</option>
+              <option value="CASH">Cash</option>
+              <option value="TRANSFER">Transfer</option>
               <option value="QRIS">QRIS</option>
             </select>
           </div>

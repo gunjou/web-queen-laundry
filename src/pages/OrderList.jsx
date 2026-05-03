@@ -154,7 +154,7 @@ const OrderList = () => {
           </p>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 items-center">
           <div className="relative w-full lg:w-[300px]">
             <Search
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -164,7 +164,7 @@ const OrderList = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Cari invoice / customer..."
-              className="w-full pl-10 pr-4 py-3 rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white text-sm"
+              className="w-full pl-10 pr-4 py-3 rounded-2xl border bg-white dark:bg-slate-800 dark:text-white text-sm"
             />
           </div>
 
@@ -173,7 +173,7 @@ const OrderList = () => {
               setEditingOrder(null);
               setIsModalOpen(true);
             }}
-            className="px-5 py-3 rounded-2xl bg-queen-navy text-white font-bold flex items-center gap-2"
+            className="hidden lg:flex items-center gap-2 px-4 py-3 bg-queen-navy text-white font-bold text-sm rounded-2xl"
           >
             <Plus size={18} />
             Tambah
@@ -275,10 +275,10 @@ const OrderList = () => {
                           order.order_status
                         )}`}
                       >
-                        <option value="DITERIMA">DI TERIMA</option>
-                        <option value="DIPROSES">DI PROSES</option>
+                        <option value="DITERIMA">DITERIMA</option>
+                        <option value="DIPROSES">DIPROSES</option>
                         <option value="SELESAI">SELESAI</option>
-                        <option value="DIAMBIL">DI AMBIL</option>
+                        <option value="DIAMBIL">DIAMBIL</option>
                       </select>
                     </td>
 
@@ -290,7 +290,9 @@ const OrderList = () => {
                             : "bg-red-100 text-red-700"
                         }`}
                       >
-                        {order.payment_status}
+                        {order.payment_status === "SUDAH_BAYAR"
+                          ? "LUNAS"
+                          : order.payment_status}
                       </span>
                     </td>
 
@@ -408,6 +410,19 @@ const OrderList = () => {
             </div>
           ))
         )}
+      </div>
+
+      {/* FLOATING ACTION BUTTON */}
+      <div className="lg:hidden fixed bottom-24 right-5">
+        <button
+          onClick={() => {
+            setEditingOrder(null);
+            setIsModalOpen(true);
+          }}
+          className="w-14 h-14 rounded-full bg-queen-navy text-white flex items-center justify-center"
+        >
+          <Plus />
+        </button>
       </div>
 
       {/* MODAL */}

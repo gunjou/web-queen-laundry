@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Plus, Edit3, Trash2, Search } from "lucide-react";
+import { Plus, Edit3, Trash2, Search, Pencil } from "lucide-react";
 import Swal from "sweetalert2";
 
 import ServiceModal from "../components/modal/ServiceModal";
-import { formatRupiah, parseRupiah } from "../utils/format";
+import { formatRupiah } from "../utils/format";
 
 import {
   getServices,
@@ -15,12 +15,10 @@ import {
 const Services = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [hargaDisplay, setHargaDisplay] = useState("");
 
   const [tab, setTab] = useState("semua");
   const [search, setSearch] = useState("");
 
-  // MODAL STATE
   const [openModal, setOpenModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
@@ -29,6 +27,8 @@ const Services = () => {
     tipe: "",
     harga: "",
   });
+
+  const [hargaDisplay, setHargaDisplay] = useState("");
 
   useEffect(() => {
     fetchServices();
@@ -46,6 +46,9 @@ const Services = () => {
     }
   };
 
+  /* =========================
+     FILTER
+  ========================= */
   const filteredServices = useMemo(() => {
     return services.filter((item) => {
       const matchTab = tab === "semua" || item.tipe === tab;
@@ -57,7 +60,9 @@ const Services = () => {
     });
   }, [services, tab, search]);
 
-  // DELETE
+  /* =========================
+     DELETE
+  ========================= */
   const handleDelete = async (service) => {
     const result = await Swal.fire({
       title: "Hapus layanan?",
@@ -75,121 +80,60 @@ const Services = () => {
       await deleteService(service.id_service);
 
       setServices((prev) =>
-        prev.filter((item) => item.id_service !== service.id_service)
+        prev.filter((i) => i.id_service !== service.id_service)
       );
 
-      Swal.fire({
-        title: "Berhasil",
-        text: "Layanan berhasil dihapus",
-        icon: "success",
-        timer: 1200,
-        showConfirmButton: false,
-      });
+      Swal.fire("Berhasil", "Layanan berhasil dihapus", "success");
     } catch (error) {
-      Swal.fire("Error", error.message || "Gagal menghapus layanan", "error");
+      Swal.fire("Error", error.message || "Gagal menghapus", "error");
     }
   };
 
-  // OPEN CREATE
+  /* =========================
+     OPEN MODAL
+  ========================= */
   const handleOpenCreate = () => {
     setEditingId(null);
     setForm({ nama: "", tipe: "", harga: "" });
     setOpenModal(true);
   };
 
-  // OPEN EDIT
   const handleOpenEdit = (service) => {
     setEditingId(service.id_service);
-
     setForm({
-      nama: service.nama || "",
-      tipe: service.tipe || "",
-      harga: String(service.harga || ""),
+      nama: service.nama,
+      tipe: service.tipe,
+      harga: String(service.harga),
     });
-
     setHargaDisplay(formatRupiah(service.harga));
-
     setOpenModal(true);
   };
 
-  // SAVE (CREATE / UPDATE)
+  /* =========================
+     SAVE
+  ========================= */
   const handleSave = async (e) => {
     e.preventDefault();
 
-    // =========================
-    // VALIDASI FRONTEND
-    // =========================
-    if (!form.nama || !form.tipe || !form.harga) {
-      Swal.fire("Validasi", "Semua field wajib diisi", "warning");
-      return;
-    }
-
-    // =========================
-    // NORMALISASI DATA
-    // =========================
-    const payload = {
-      nama: form.nama.trim(),
-      tipe: form.tipe.toLowerCase(),
-      harga: Number(form.harga),
-    };
-
-    // tambahan safety (hindari NaN)
-    if (isNaN(payload.harga)) {
-      Swal.fire("Error", "Harga harus berupa angka", "error");
-      return;
-    }
-
     try {
-      setLoading(true);
+      const payload = {
+        nama: form.nama,
+        tipe: form.tipe,
+        harga: Number(form.harga),
+      };
 
-      // =========================
-      // CREATE / UPDATE
-      // =========================
       if (editingId) {
         await updateService(editingId, payload);
-
-        Swal.fire({
-          title: "Berhasil",
-          text: "Layanan berhasil diupdate",
-          icon: "success",
-          timer: 1200,
-          showConfirmButton: false,
-        });
       } else {
         await createService(payload);
-
-        Swal.fire({
-          title: "Berhasil",
-          text: "Layanan berhasil ditambahkan",
-          icon: "success",
-          timer: 1200,
-          showConfirmButton: false,
-        });
       }
 
-      // =========================
-      // RESET STATE
-      // =========================
       setOpenModal(false);
-      setEditingId(null);
-      setForm({
-        nama: "",
-        tipe: "",
-        harga: "",
-      });
-
-      // refresh data
       await fetchServices();
-    } catch (error) {
-      console.log("SERVICE ERROR:", error.response?.data);
 
-      Swal.fire(
-        "Error",
-        error.response?.data?.message || "Gagal menyimpan layanan",
-        "error"
-      );
-    } finally {
-      setLoading(false);
+      Swal.fire("Berhasil", "Data tersimpan", "success");
+    } catch (err) {
+      Swal.fire("Error", err.message || "Gagal menyimpan", "error");
     }
   };
 
@@ -200,147 +144,174 @@ const Services = () => {
   ];
 
   return (
-    <div className="space-y-6 pb-24">
-      {/* HEADER */}
+    <div className="space-y-6 pb-24 lg:pb-10">
+      {/* ================= HEADER (SAMA DENGAN PAYMENTS STYLE) ================= */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-800 dark:text-white">
-            Manajemen Layanan
+          <h1 className="text-2xl font-black text-queen-navy dark:text-white">
+            Services
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Kelola layanan laundry
-          </p>
+          <p className="text-sm text-gray-500">Kelola layanan laundry</p>
         </div>
 
-        <button
-          onClick={handleOpenCreate}
-          className="flex items-center gap-2 px-4 py-3 bg-queen-navy text-white rounded-2xl text-sm font-bold shadow-sm hover:opacity-90 transition"
-        >
-          <Plus size={16} />
-          Tambah Layanan
-        </button>
-      </div>
+        <div className="flex gap-3 items-center w-full lg:w-auto">
+          {/* SEARCH */}
+          <div className="relative w-full lg:w-[300px]">
+            <Search
+              size={18}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cari layanan..."
+              className="w-full pl-10 pr-4 py-3 rounded-2xl border bg-white dark:bg-slate-800 dark:text-white text-sm"
+            />
+          </div>
 
-      {/* SEARCH */}
-      <div className="relative">
-        <Search
-          size={18}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-        />
-        <input
-          type="text"
-          placeholder="Cari layanan..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-11 pr-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:text-white text-sm outline-none"
-        />
-      </div>
-
-      {/* FILTER TAB */}
-      <div className="flex gap-2 overflow-x-auto">
-        {tabs.map((item) => (
+          {/* BUTTON */}
           <button
-            key={item.key}
-            onClick={() => setTab(item.key)}
+            onClick={handleOpenCreate}
+            className="hidden lg:flex items-center gap-2 px-4 py-3 bg-queen-navy text-white font-bold text-sm rounded-2xl"
+          >
+            <Plus size={18} />
+            Tambah
+          </button>
+        </div>
+      </div>
+
+      {/* ================= TAB ================= */}
+      <div className="flex gap-2 overflow-x-auto">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
             className={`px-4 py-2 rounded-full text-xs font-bold transition ${
-              tab === item.key
+              tab === t.key
                 ? "bg-queen-navy text-white"
-                : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                : "bg-slate-100 dark:bg-slate-800 text-slate-500"
             }`}
           >
-            {item.label}
+            {t.label}
           </button>
         ))}
       </div>
 
-      {/* TABLE */}
+      {/* ================= TABLE DESKTOP ================= */}
       <div className="hidden lg:block bg-white dark:bg-slate-800 rounded-3xl border overflow-hidden">
-        <div className="max-h-[300px] overflow-y-auto">
-          <table className="w-full text-left">
-            <thead className="sticky top-0 z-10 bg-gray-50 dark:bg-slate-900 text-xs uppercase text-gray-400">
+        <div className="max-h-[420px] overflow-y-auto">
+          <table className="w-full text-sm">
+            <thead className="sticky top-0 bg-gray-50 dark:bg-slate-900 text-xs uppercase text-gray-400">
               <tr>
-                <th className="px-8 py-4">Nama</th>
-                <th className="px-8 py-4">Tipe</th>
-                <th className="px-8 py-4">Harga</th>
-                <th className="px-8 py-4 text-right">Aksi</th>
+                <th className="px-6 py-4 text-left">Nama</th>
+                <th className="px-6 py-4 text-left">Tipe</th>
+                <th className="px-6 py-4 text-left">Harga</th>
+                <th className="px-6 py-4 text-right">Aksi</th>
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-              {filteredServices.map((service) => (
-                <tr key={service.id_service}>
-                  <td className="px-8 py-5 font-semibold dark:text-white">
-                    {service.nama}
-                  </td>
-
-                  <td
-                    className="px-8 py-5 uppercase text-xs font-bold"
-                    style={{
-                      color: service.tipe === "kiloan" ? "#2563eb" : "#059669",
-                    }}
-                  >
-                    {service.tipe}
-                  </td>
-
-                  <td className="px-8 py-5 font-bold text-queen-navy dark:text-queen-gold">
-                    Rp {Number(service.harga).toLocaleString("id-ID")}
-                  </td>
-
-                  <td className="px-8 py-5">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => handleOpenEdit(service)}
-                        className="p-2 rounded-xl text-blue-500"
-                      >
-                        <Edit3 size={18} />
-                      </button>
-
-                      <button
-                        onClick={() => handleDelete(service)}
-                        className="p-2 rounded-xl text-red-500"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={8} className="px-6 py-10 text-center">
+                    <div className="flex flex-col items-center justify-center gap-3 text-slate-400">
+                      <div className="w-8 h-8 border-4 border-slate-200 border-t-queen-navy rounded-full animate-spin"></div>
+                      <p className="text-sm font-medium">
+                        Memuat data layanan...
+                      </p>
                     </div>
                   </td>
                 </tr>
-              ))}
+              ) : filteredServices.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="text-center py-10">
+                    Data tidak ditemukan
+                  </td>
+                </tr>
+              ) : (
+                filteredServices.map((s) => (
+                  <tr key={s.id_service} className="border-t">
+                    <td className="px-6 py-5 font-semibold dark:text-white">
+                      {s.nama}
+                    </td>
+
+                    <td className="px-6 py-5 uppercase text-xs font-bold text-blue-500">
+                      {s.tipe}
+                    </td>
+
+                    <td className="px-6 py-5 font-bold text-queen-navy dark:text-queen-gold">
+                      Rp {Number(s.harga).toLocaleString("id-ID")}
+                    </td>
+
+                    <td className="px-6 py-5 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button onClick={() => handleOpenEdit(s)}>
+                          <Edit3 size={18} className="text-blue-500" />
+                        </button>
+
+                        <button onClick={() => handleDelete(s)}>
+                          <Trash2 size={18} className="text-red-500" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* MOBILE */}
-      <div className="grid gap-4 lg:hidden">
-        {filteredServices.map((service) => (
-          <div
-            key={service.id_service}
-            className="bg-white dark:bg-slate-900 rounded-3xl p-5 border"
-          >
-            <div className="flex justify-between">
-              <div>
-                <h3 className="font-bold">{service.nama}</h3>
-                <p className="text-xs uppercase text-gray-400">
-                  {service.tipe}
+      {/* ================= MOBILE ================= */}
+      <div className="lg:hidden space-y-4">
+        {loading ? (
+          <div className="text-center py-10">Loading...</div>
+        ) : filteredServices.length === 0 ? (
+          <div className="text-center py-10">Data tidak ditemukan</div>
+        ) : (
+          filteredServices.map((s) => (
+            <div
+              key={s.id_service}
+              className="bg-white dark:bg-slate-800 rounded-3xl p-5 border"
+            >
+              <div className="flex justify-between">
+                <div>
+                  <h3 className="font-bold">{s.nama}</h3>
+                  <p className="text-xs uppercase text-gray-400">{s.tipe}</p>
+                </div>
+
+                <p className="font-bold text-queen-navy">
+                  Rp {Number(s.harga).toLocaleString("id-ID")}
                 </p>
               </div>
 
-              <p className="font-black text-queen-navy">
-                Rp {Number(service.harga).toLocaleString("id-ID")}
-              </p>
+              <div className="flex justify-end gap-3 mt-4">
+                <button
+                  onClick={() => handleOpenEdit(s)}
+                  className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-700 text-blue-500 active:scale-95 transition"
+                >
+                  <Pencil size={18} />
+                </button>
+                <button
+                  onClick={() => handleDelete(s)}
+                  className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-700 text-red-500 active:scale-95 transition"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
             </div>
+          ))
+        )}
+      </div>
 
-            <div className="flex justify-end gap-2 mt-4">
-              <button onClick={() => handleOpenEdit(service)}>
-                <Edit3 size={16} />
-              </button>
-
-              <button onClick={() => handleDelete(service)}>
-                <Trash2 size={16} />
-              </button>
-            </div>
-          </div>
-        ))}
+      {/* FLOAT BUTTON MOBILE */}
+      <div className="lg:hidden fixed bottom-24 right-5">
+        <button
+          onClick={handleOpenCreate}
+          className="w-14 h-14 rounded-full bg-queen-navy text-white flex items-center justify-center shadow-lg"
+        >
+          <Plus />
+        </button>
       </div>
 
       {/* MODAL */}
@@ -352,7 +323,6 @@ const Services = () => {
         hargaDisplay={hargaDisplay}
         setHargaDisplay={setHargaDisplay}
         onSubmit={handleSave}
-        loading={loading}
         isEdit={!!editingId}
       />
     </div>
