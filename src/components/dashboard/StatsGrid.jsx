@@ -19,7 +19,7 @@ const StatsGrid = ({ stats, loading }) => {
       title: "Total Order Hari Ini",
       value: stats?.total_today ?? 0,
       icon: Package,
-      color: "text-queen-navy",
+      color: "text-queen-navy dark:text-white",
     },
     {
       title: "Pendapatan Hari Ini",

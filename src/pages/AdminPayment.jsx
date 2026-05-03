@@ -70,13 +70,13 @@ const Payments = () => {
   const getIcon = (metode) => {
     switch (metode?.toLowerCase()) {
       case "qris":
-        return <QrCode size={18} />;
+        return <QrCode size={18} className="text-purple-600" />;
       case "transfer":
-        return <Building2 size={18} />;
+        return <Building2 size={18} className="text-blue-600" />;
       case "cash":
-        return <Wallet size={18} />;
+        return <Wallet size={18} className="text-green-600" />;
       default:
-        return <CreditCard size={18} />;
+        return <CreditCard size={18} className="text-orange-600" />;
     }
   };
 
@@ -157,21 +157,21 @@ const Payments = () => {
 
       {/* TABLE DESKTOP */}
       <div className="hidden lg:block bg-white dark:bg-slate-800 rounded-3xl border overflow-hidden">
-        <div className="max-h-[420px] overflow-y-auto">
-          <table className="w-full text-sm">
+        <div className="max-h-[350px] overflow-y-auto">
+          <table className="w-full text-xs">
             <thead className="sticky top-0 bg-gray-50 dark:bg-slate-900 text-xs uppercase text-gray-400">
               <tr>
-                <th className="px-6 py-4 text-left">Invoice</th>
-                <th className="px-6 py-4 text-left">Metode</th>
-                <th className="px-6 py-4 text-left">Jumlah</th>
-                <th className="px-6 py-4 text-left">Tanggal</th>
+                <th className="px-3 py-2 text-left">Invoice</th>
+                <th className="px-3 py-2 text-left">Metode</th>
+                <th className="px-3 py-2 text-left">Jumlah</th>
+                <th className="px-3 py-2 text-left">Tanggal</th>
               </tr>
             </thead>
 
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-10 text-center">
+                  <td colSpan={8} className="px-3 py-10 text-center">
                     <div className="flex flex-col items-center justify-center gap-3 text-slate-400">
                       <div className="w-8 h-8 border-4 border-slate-200 border-t-queen-navy rounded-full animate-spin"></div>
                       <p className="text-sm font-medium">
@@ -182,27 +182,30 @@ const Payments = () => {
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="text-center py-10">
+                  <td
+                    colSpan={4}
+                    className="text-center py-6 text-xs text-gray-400"
+                  >
                     Data tidak ditemukan
                   </td>
                 </tr>
               ) : (
                 filtered.map((p) => (
                   <tr key={p.id_payment} className="border-t">
-                    <td className="px-6 py-5 font-bold text-queen-gold">
+                    <td className="px-3 py-2 font-bold text-queen-gold">
                       {p.kode_invoice}
                     </td>
 
-                    <td className="px-6 py-5 flex items-center gap-2">
+                    <td className="px-3 py-2 flex items-center font-semibold dark:text-white gap-2">
                       {getIcon(p.metode)}
                       {p.metode}
                     </td>
 
-                    <td className="px-6 py-5 font-bold">
+                    <td className="px-3 py-2 font-bold text-queen-navy dark:text-white">
                       Rp {formatRupiah(p.jumlah)}
                     </td>
 
-                    <td className="px-6 py-5 text-xs text-gray-500">
+                    <td className="px-3 py-2 text-xs text-gray-500">
                       {new Date(p.tanggal_bayar).toLocaleString("id-ID")}
                     </td>
                   </tr>

@@ -245,12 +245,18 @@ const Services = () => {
 
                     <td className="px-6 py-5 text-right">
                       <div className="flex justify-end gap-2">
-                        <button onClick={() => handleOpenEdit(s)}>
-                          <Edit3 size={18} className="text-blue-500" />
+                        <button
+                          onClick={() => handleOpenEdit(s)}
+                          className="p-2 text-blue-500"
+                        >
+                          <Pencil size={18} />
                         </button>
 
-                        <button onClick={() => handleDelete(s)}>
-                          <Trash2 size={18} className="text-red-500" />
+                        <button
+                          onClick={() => handleDelete(s)}
+                          className="p-2 text-red-500"
+                        >
+                          <Trash2 size={18} />
                         </button>
                       </div>
                     </td>

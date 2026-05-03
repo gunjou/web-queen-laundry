@@ -209,11 +209,11 @@ const Customers = () => {
               ) : (
                 filteredCustomers.map((cust) => (
                   <tr key={cust.id_customer} className="border-t">
-                    <td className="px-6 py-5 font-semibold capitalize">
+                    <td className="px-6 py-5 font-semibold dark:text-white capitalize">
                       {cust.nama}
                     </td>
-                    <td className="px-6 py-5">{cust.no_hp}</td>
-                    <td className="px-6 py-5">{cust.alamat}</td>
+                    <td className="px-6 py-5 dark:text-white">{cust.no_hp}</td>
+                    <td className="px-6 py-5 dark:text-white">{cust.alamat}</td>
 
                     <td className="px-6 py-5 text-right">
                       <div className="flex justify-end gap-2">

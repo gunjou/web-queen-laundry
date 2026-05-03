@@ -8,8 +8,10 @@ import {
 } from "lucide-react";
 import Swal from "sweetalert2";
 import { Pencil, Trash2 } from "lucide-react";
+import { getCustomers } from "../api/customers/customers.api";
 
 import OrderModal from "../components/modal/OrderModal";
+import OrderEditModal from "../components/modal/OrderEditModal";
 import {
   getOrders,
   createOrder,
@@ -18,7 +20,7 @@ import {
   updateOrderStatus,
 } from "../api/orders/orders.api";
 
-const statusTabs = ["SEMUA", "DITERIMA", "DIPROSES", "SELESAI", "DIAMBIL"];
+const statusTabs = ["SEMUA", "DITERIMA", "DIPROSES", "DIAMBIL", "SELESAI"];
 
 const OrderList = () => {
   const [orders, setOrders] = useState([]);
@@ -30,9 +32,11 @@ const OrderList = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
+  const [customerMap, setCustomerMap] = useState({});
 
   useEffect(() => {
     fetchOrders();
+    fetchCustomers();
   }, []);
 
   const fetchOrders = async () => {
@@ -45,6 +49,40 @@ const OrderList = () => {
     } finally {
       setTableLoading(false);
     }
+  };
+
+  const fetchCustomers = async () => {
+    try {
+      const data = await getCustomers();
+
+      const map = {};
+
+      (Array.isArray(data) ? data : []).forEach((customer) => {
+        if (customer.nama) {
+          map[customer.nama.trim().toLowerCase()] = customer.no_hp;
+        }
+      });
+
+      setCustomerMap(map);
+    } catch (err) {
+      console.error("Gagal ambil customer:", err);
+    }
+  };
+
+  const getWhatsappLink = (phone) => {
+    if (!phone) return "#";
+
+    const cleaned = String(phone).replace(/\D/g, "");
+
+    if (cleaned.startsWith("0")) {
+      return `https://wa.me/62${cleaned.slice(1)}`;
+    }
+
+    if (cleaned.startsWith("62")) {
+      return `https://wa.me/${cleaned}`;
+    }
+
+    return `https://wa.me/${cleaned}`;
   };
 
   const filteredOrders = useMemo(() => {
@@ -64,23 +102,21 @@ const OrderList = () => {
   }, [orders, searchTerm, statusTab]);
 
   const handleSubmitOrder = async (payload) => {
+    if (!editingOrder) return;
+
     try {
       setLoading(true);
 
-      if (editingOrder) {
-        await updateOrder(editingOrder.id_order, payload);
-      } else {
-        await createOrder(payload);
-      }
+      await updateOrder(editingOrder.id_order, payload);
 
       await fetchOrders();
 
       setIsModalOpen(false);
       setEditingOrder(null);
 
-      Swal.fire("Berhasil", "Order berhasil disimpan", "success");
+      Swal.fire("Berhasil", "Order berhasil diperbarui", "success");
     } catch (err) {
-      Swal.fire("Error", err.message || "Gagal menyimpan order", "error");
+      Swal.fire("Error", err.message || "Gagal update order", "error");
     } finally {
       setLoading(false);
     }
@@ -130,11 +166,11 @@ const OrderList = () => {
       case "DIPROSES":
         return "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300";
 
-      case "SELESAI":
-        return "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300";
-
       case "DIAMBIL":
         return "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300";
+
+      case "SELESAI":
+        return "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300";
 
       default:
         return "bg-gray-100 text-gray-700";
@@ -200,25 +236,25 @@ const OrderList = () => {
 
       {/* DESKTOP */}
       <div className="hidden lg:block bg-white dark:bg-slate-800 rounded-3xl border overflow-hidden">
-        <div className="max-h-[370px] overflow-y-auto">
-          <table className="w-full text-sm">
+        <div className="max-h-[300px] overflow-y-auto">
+          <table className="w-full text-xs">
             <thead className="sticky top-0 bg-gray-50 dark:bg-slate-900 text-xs uppercase text-gray-400">
               <tr>
-                <th className="px-6 py-4">Invoice</th>
-                <th className="px-6 py-4">Customer</th>
-                <th className="px-6 py-4">Layanan</th>
-                <th className="px-6 py-4">Berat</th>
-                <th className="px-6 py-4">Total</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Bayar</th>
-                <th className="px-6 py-4 text-right">Aksi</th>
+                <th className="px-3 py-2">Invoice</th>
+                <th className="px-3 py-2">Customer</th>
+                <th className="px-3 py-2">Layanan</th>
+                <th className="px-3 py-2">Berat</th>
+                <th className="px-3 py-2">Total</th>
+                <th className="px-3 py-2">Status</th>
+                <th className="px-3 py-2">Bayar</th>
+                <th className="px-3 py-2 text-right">Aksi</th>
               </tr>
             </thead>
 
             <tbody>
               {tableLoading ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-10 text-center">
+                  <td colSpan={8} className="px-3 py-10 text-center">
                     <div className="flex flex-col items-center justify-center gap-3 text-slate-400">
                       <div className="w-8 h-8 border-4 border-slate-200 border-t-queen-navy rounded-full animate-spin"></div>
                       <p className="text-sm font-medium">
@@ -231,92 +267,112 @@ const OrderList = () => {
                 <tr>
                   <td
                     colSpan={8}
-                    className="px-6 py-10 text-center text-gray-400"
+                    className="px-3 py-10 text-center text-gray-400"
                   >
                     Data tidak ditemukan
                   </td>
                 </tr>
               ) : (
-                filteredOrders.map((order) => (
-                  <tr
-                    key={order.id_order}
-                    className="border-t hover:bg-slate-50 dark:hover:bg-slate-700/30"
-                  >
-                    <td className="px-6 py-5 font-bold text-queen-gold">
-                      {order.kode_invoice}
-                    </td>
+                filteredOrders.map((order) => {
+                  const customerPhone =
+                    customerMap[order.customer?.trim().toLowerCase()];
 
-                    <td className="px-6 py-5 font-semibold dark:text-white">
-                      {order.customer}
-                    </td>
+                  return (
+                    <tr
+                      key={order.id_order}
+                      className="border-t hover:bg-slate-50 dark:hover:bg-slate-700/30"
+                    >
+                      <td className="px-6 py-5 font-bold text-queen-gold">
+                        {order.kode_invoice}
+                      </td>
 
-                    <td className="px-6 py-5 dark:text-white">
-                      {order.service}
-                    </td>
+                      <td className="px-6 py-5 font-semibold dark:text-white capitalize">
+                        {order.customer}
+                      </td>
 
-                    <td className="px-6 py-5 text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <ScaleIcon size={14} />
-                        {order.berat} kg
-                      </span>
-                    </td>
+                      <td className="px-6 py-5 dark:text-white">
+                        {order.service}
+                      </td>
 
-                    <td className="px-6 py-5 font-bold dark:text-white">
-                      Rp {Number(order.harga_final).toLocaleString("id-ID")}
-                    </td>
+                      <td className="px-6 py-5 text-gray-500">
+                        <span className="flex items-center gap-1">
+                          {order.berat} kg
+                        </span>
+                      </td>
 
-                    <td className="px-6 py-5">
-                      <select
-                        value={order.order_status}
-                        onChange={(e) =>
-                          handleStatusChange(order.id_order, e.target.value)
-                        }
-                        className={`px-3 py-2 rounded-xl text-xs font-bold outline-none ${getStatusStyle(
-                          order.order_status
-                        )}`}
-                      >
-                        <option value="DITERIMA">DITERIMA</option>
-                        <option value="DIPROSES">DIPROSES</option>
-                        <option value="SELESAI">SELESAI</option>
-                        <option value="DIAMBIL">DIAMBIL</option>
-                      </select>
-                    </td>
+                      <td className="px-6 py-5 font-bold dark:text-white">
+                        Rp {Number(order.harga_final).toLocaleString("id-ID")}
+                      </td>
 
-                    <td className="px-6 py-5">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          order.payment_status === "SUDAH_BAYAR"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                        }`}
-                      >
-                        {order.payment_status === "SUDAH_BAYAR"
-                          ? "LUNAS"
-                          : order.payment_status}
-                      </span>
-                    </td>
+                      <td className="px-6 py-5">
+                        <select
+                          value={order.order_status}
+                          onChange={(e) =>
+                            handleStatusChange(order.id_order, e.target.value)
+                          }
+                          className={`px-3 py-2 rounded-xl text-xs font-bold outline-none ${getStatusStyle(
+                            order.order_status
+                          )}`}
+                        >
+                          <option value="DITERIMA">DITERIMA</option>
+                          <option value="DIPROSES">DIPROSES</option>
+                          <option value="DIAMBIL">BISA DIAMBIL</option>
+                          <option value="SELESAI">SELESAI</option>
+                        </select>
+                      </td>
 
-                    <td className="px-6 py-5 text-right">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => setEditingOrder(order)}
+                      <td className="px-6 py-5">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-bold ${
+                            order.payment_status === "SUDAH_BAYAR"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {order.payment_status === "SUDAH_BAYAR"
+                            ? "LUNAS"
+                            : order.payment_status}
+                        </span>
+                      </td>
+
+                      <td className="px-6 py-5 text-right">
+                        <div className="flex justify-end gap-2">
+                          {/* <button
+                          onClick={() => {
+                            setEditingOrder(order);
+                            setIsModalOpen(true);
+                          }}
                           className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-xl transition-colors"
                           title="Edit"
                         >
                           <Pencil size={18} />
-                        </button>
+                        </button> */}
+                          <a
+                            href={getWhatsappLink(customerPhone)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={`p-2 rounded-xl transition-colors ${
+                              customerPhone
+                                ? "text-green-600 hover:bg-green-50 dark:hover:bg-green-500/10"
+                                : "text-gray-300 cursor-not-allowed pointer-events-none"
+                            }`}
+                            title="WhatsApp Customer"
+                          >
+                            <MessageCircle size={18} />
+                          </a>
 
-                        <button
-                          onClick={() => handleDelete(order.id_order)}
-                          className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors"
-                          title="Hapus"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                          <button
+                            onClick={() => handleDelete(order.id_order)}
+                            className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors"
+                            title="Hapus"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -335,59 +391,66 @@ const OrderList = () => {
             Data tidak ditemukan
           </div>
         ) : (
-          filteredOrders.map((order) => (
-            <div
-              key={order.id_order}
-              className="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-sm border border-slate-100 dark:border-slate-700"
-            >
-              {/* HEADER */}
-              <div className="flex justify-between gap-3">
-                <div>
-                  <p className="text-xs font-bold text-queen-gold">
-                    {order.kode_invoice}
-                  </p>
+          filteredOrders.map((order) => {
+            const customerPhone =
+              customerMap[order.customer?.trim().toLowerCase()];
 
-                  <h3 className="mt-1 font-black text-slate-900 dark:text-white">
-                    {order.customer}
-                  </h3>
+            return (
+              <div
+                key={order.id_order}
+                className="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-sm border border-slate-100 dark:border-slate-700"
+              >
+                {/* HEADER */}
+                <div className="flex justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold text-queen-gold">
+                      {order.kode_invoice}
+                    </p>
 
-                  <p className="text-sm text-gray-500 mt-1">{order.service}</p>
+                    <h3 className="mt-1 font-black text-slate-900 dark:text-white">
+                      {order.customer}
+                    </h3>
+
+                    <p className="text-sm text-gray-500 mt-1">
+                      {order.service}
+                    </p>
+                  </div>
+
+                  <span
+                    className={`px-3 py-1 rounded-full text-[10px] font-bold h-fit ${getStatusStyle(
+                      order.order_status
+                    )}`}
+                  >
+                    {order.order_status}
+                  </span>
                 </div>
 
-                <span
-                  className={`px-3 py-1 rounded-full text-[10px] font-bold h-fit ${getStatusStyle(
-                    order.order_status
-                  )}`}
-                >
-                  {order.order_status}
-                </span>
-              </div>
+                {/* INFO */}
+                <div className="mt-4 flex justify-between text-sm">
+                  <p className="text-gray-500">{order.berat} kg</p>
+                  <p className="font-black text-slate-900 dark:text-white">
+                    Rp {Number(order.harga_final).toLocaleString("id-ID")}
+                  </p>
+                </div>
 
-              {/* INFO */}
-              <div className="mt-4 flex justify-between text-sm">
-                <p className="text-gray-500">{order.berat} kg</p>
-                <p className="font-black text-slate-900 dark:text-white">
-                  Rp {Number(order.harga_final).toLocaleString("id-ID")}
-                </p>
-              </div>
-
-              {/* ACTIONS (ICON ONLY) */}
-              <div className="mt-4 flex justify-end gap-2">
-                {/* WHATSAPP (NEW) */}
-                <a
-                  href={`https://wa.me/${
-                    order.customer_no?.replace(/^0/, "62") || ""
-                  }`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="p-3 rounded-2xl bg-green-100 text-green-600 active:scale-95 transition"
-                  title="WhatsApp Customer"
-                >
-                  <MessageCircle size={18} />
-                </a>
-
-                {/* EDIT */}
-                <button
+                {/* ACTIONS (ICON ONLY) */}
+                <div className="mt-4 flex justify-end gap-2">
+                  {/* WHATSAPP (NEW) */}
+                  <a
+                    href={getWhatsappLink(customerPhone)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={`p-3 rounded-2xl active:scale-95 transition ${
+                      customerPhone
+                        ? "bg-green-100 text-green-600"
+                        : "bg-gray-100 text-gray-300 pointer-events-none"
+                    }`}
+                    title="WhatsApp Customer"
+                  >
+                    <MessageCircle size={18} />
+                  </a>
+                  {/* EDIT */}
+                  {/* <button
                   onClick={() => {
                     setEditingOrder(order);
                     setIsModalOpen(true);
@@ -396,19 +459,20 @@ const OrderList = () => {
                   title="Edit"
                 >
                   <Pencil size={18} />
-                </button>
+                </button> */}
 
-                {/* DELETE */}
-                <button
-                  onClick={() => handleDelete(order.id_order)}
-                  className="p-3 rounded-2xl bg-red-100 text-red-600 active:scale-95 transition"
-                  title="Hapus"
-                >
-                  <Trash2 size={18} />
-                </button>
+                  {/* DELETE */}
+                  <button
+                    onClick={() => handleDelete(order.id_order)}
+                    className="p-3 rounded-2xl bg-red-100 text-red-600 active:scale-95 transition"
+                    title="Hapus"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
@@ -426,16 +490,38 @@ const OrderList = () => {
       </div>
 
       {/* MODAL */}
-      <OrderModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingOrder(null);
-        }}
-        onSubmit={handleSubmitOrder}
-        loading={loading}
-        initialData={editingOrder}
-      />
+      {/* CREATE */}
+      {isModalOpen && !editingOrder && (
+        <OrderModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={async () => {
+            await fetchOrders();
+            setIsModalOpen(false);
+
+            Swal.fire({
+              title: "Order berhasil dibuat",
+              icon: "success",
+              timer: 1200,
+              showConfirmButton: false,
+            });
+          }}
+        />
+      )}
+
+      {/* EDIT */}
+      {isModalOpen && editingOrder && (
+        <OrderEditModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingOrder(null);
+          }}
+          onSubmit={handleSubmitOrder}
+          loading={loading}
+          initialData={editingOrder}
+        />
+      )}
     </div>
   );
 };

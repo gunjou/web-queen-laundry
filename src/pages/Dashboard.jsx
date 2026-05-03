@@ -149,10 +149,10 @@ const Dashboard = () => {
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <RecentOrders orders={ordersData} />
+          <RecentOrders />
         </div>
 
-        <ActivityCard activities={activityData} />
+        <ActivityCard />
       </div>
 
       <div className="lg:hidden fixed bottom-24 right-5 z-50">
