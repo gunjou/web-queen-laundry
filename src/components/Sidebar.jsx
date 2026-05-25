@@ -130,7 +130,12 @@ const Sidebar = () => {
       {/* ================= MOBILE ================= */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700">
         <div className="flex justify-around items-center h-16">
-          {flatMenus.slice(0, 5).map((menu) => (
+          {[
+            ...menuSections[0].items, // Dashboard
+            ...menuSections[1].items, // Order + Pembayaran
+            ...menuSections[2].items, // Customer + Layanan
+            ...menuSections[3].items, // Laporan
+          ].map((menu) => (
             <NavLink key={menu.name} to={menu.path} className="flex-1">
               {({ isActive }) => (
                 <div

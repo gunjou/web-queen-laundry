@@ -24,7 +24,7 @@ import Receipt58mm from "../receipt/Receipt58mm";
 
 const OrderModal = ({ isOpen, onClose, onSuccess }) => {
   const [paymentStatus, setPaymentStatus] = useState("Belum Lunas");
-  const [paymentMethod, setPaymentMethod] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [totalHarga, setTotalHarga] = useState(0);
   const [receiptData, setReceiptData] = useState(null);
   const [showReceipt, setShowReceipt] = useState(false);
@@ -125,6 +125,8 @@ const OrderModal = ({ isOpen, onClose, onSuccess }) => {
     id_service: "",
     berat: "",
     catatan: "",
+    ongkir: "",
+    estimasi_selesai: "",
   });
 
   const selectedService = useMemo(() => {
@@ -139,9 +141,10 @@ const OrderModal = ({ isOpen, onClose, onSuccess }) => {
 
     const berat = Number(form.berat);
     const harga = Number(selectedService.harga);
+    const ongkir = serviceType !== "reguler" ? Number(form.ongkir) || 0 : 0;
 
-    setTotalHarga(berat * harga);
-  }, [selectedService, form.berat]);
+    setTotalHarga(berat * harga + ongkir);
+  }, [selectedService, form.berat, form.ongkir, serviceType]);
 
   const getAutoCatatan = () => {
     if (serviceType === "pickup") return "pickup";
@@ -196,13 +199,21 @@ const OrderModal = ({ isOpen, onClose, onSuccess }) => {
     );
   }, [customers, customerQuery]);
 
-  if (!isOpen && !showReceipt) return null;
   const handleChange = (field, value) => {
     setForm((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
+
+  useEffect(() => {
+    if (serviceType === "reguler") {
+      setForm((prev) => ({
+        ...prev,
+        ongkir: "",
+      }));
+    }
+  }, [serviceType]);
 
   const handleQuickAddCustomer = async () => {
     if (!newCustomer.nama || !newCustomer.no_hp) {
@@ -251,6 +262,8 @@ const OrderModal = ({ isOpen, onClose, onSuccess }) => {
       id_service: "",
       berat: "",
       catatan: "",
+      ongkir: "",
+      estimasi_selesai: "",
     });
 
     setIsExpress(false);
@@ -281,6 +294,27 @@ const OrderModal = ({ isOpen, onClose, onSuccess }) => {
       return;
     }
 
+    if (paymentStatus === "Lunas" && !paymentMethod) {
+      Swal.fire(
+        "Metode pembayaran belum dipilih",
+        "Pilih metode pembayaran untuk status Lunas",
+        "warning"
+      );
+      return;
+    }
+
+    if (
+      (serviceType === "pickup" || serviceType === "pickup_delivery") &&
+      (!form.ongkir || Number(form.ongkir) <= 0 || !form.estimasi_selesai)
+    ) {
+      Swal.fire(
+        "Data pickup belum lengkap",
+        "Isi ongkir dan estimasi selesai untuk layanan pickup",
+        "warning"
+      );
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -290,7 +324,9 @@ const OrderModal = ({ isOpen, onClose, onSuccess }) => {
         id_customer: Number(form.id_customer),
         id_service: Number(form.id_service),
         langsung_bayar: paymentStatus === "Lunas",
-        metode: paymentMethod,
+        metode: paymentMethod || "CASH",
+        ongkir: serviceType !== "reguler" ? Number(form.ongkir) || 0 : 0,
+        estimasi_selesai: form.estimasi_selesai || "",
       };
 
       const res = await createOrder(payload);
@@ -325,6 +361,8 @@ const OrderModal = ({ isOpen, onClose, onSuccess }) => {
       setLoading(false);
     }
   };
+
+  if (!isOpen && !showReceipt) return null;
 
   return (
     <div className="fixed inset-0 z-[999] flex items-end sm:items-center justify-center">
@@ -694,6 +732,38 @@ const OrderModal = ({ isOpen, onClose, onSuccess }) => {
             <p className="text-[11px] text-gray-400">
               Masukkan berat cucian dalam kilogram
             </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4">
+            {serviceType !== "reguler" && (
+              <div className="space-y-2">
+                <label className="label">
+                  <MapPin size={14} /> Ongkir
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  className="input"
+                  placeholder="Masukkan ongkir"
+                  value={form.ongkir}
+                  onChange={(e) => handleChange("ongkir", e.target.value)}
+                />
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <label className="label">
+                <Zap size={14} /> Estimasi Selesai
+              </label>
+              <input
+                type="date"
+                className="input"
+                value={form.estimasi_selesai}
+                onChange={(e) =>
+                  handleChange("estimasi_selesai", e.target.value)
+                }
+              />
+            </div>
           </div>
 
           <div className="p-5 bg-queen-navy/5 dark:bg-slate-700/50 rounded-2xl border border-dashed border-queen-navy/20 dark:border-slate-600">

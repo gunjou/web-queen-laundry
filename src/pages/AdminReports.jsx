@@ -184,7 +184,7 @@ const AdminReports = () => {
                 <p>${stats.completedOrders} (${stats.completionRate}%)</p>
               </div>
               <div class="stat-card">
-                <h3>Total Revenue</h3>
+                <h3>Total Pendapatan</h3>
                 <p>Rp ${Number(stats.totalRevenue).toLocaleString("id-ID")}</p>
               </div>
               <div class="stat-card">
@@ -296,10 +296,80 @@ const AdminReports = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-slate-200 border-t-queen-navy rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-400">Memuat laporan...</p>
+      <div className="space-y-6 pb-24 lg:pb-10">
+        {/* HEADER SKELETON */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 animate-pulse">
+          <div className="space-y-2">
+            <div className="h-7 w-40 rounded-xl bg-slate-200 dark:bg-slate-700" />
+            <div className="h-4 w-56 rounded-xl bg-slate-100 dark:bg-slate-800" />
+          </div>
+
+          <div className="h-12 w-36 rounded-2xl bg-slate-200 dark:bg-slate-700" />
+        </div>
+
+        {/* STATS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, idx) => (
+            <div
+              key={idx}
+              className="bg-white dark:bg-slate-800 rounded-3xl p-5 border animate-pulse"
+            >
+              <div className="flex items-center justify-between">
+                <div className="space-y-3">
+                  <div className="h-3 w-24 rounded bg-slate-200 dark:bg-slate-700" />
+                  <div className="h-8 w-20 rounded bg-slate-300 dark:bg-slate-600" />
+                  <div className="h-3 w-16 rounded bg-slate-100 dark:bg-slate-700" />
+                </div>
+
+                <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-700" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* BREAKDOWN */}
+        <div className="bg-white dark:bg-slate-800 rounded-3xl p-5 border animate-pulse">
+          <div className="h-5 w-52 rounded bg-slate-200 dark:bg-slate-700 mb-4" />
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, idx) => (
+              <div
+                key={idx}
+                className="rounded-2xl p-4 bg-slate-100 dark:bg-slate-700"
+              >
+                <div className="h-3 w-20 mx-auto rounded bg-slate-200 dark:bg-slate-600 mb-3" />
+                <div className="h-8 w-10 mx-auto rounded bg-slate-300 dark:bg-slate-500" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* LISTS */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {[...Array(2)].map((_, idx) => (
+            <div
+              key={idx}
+              className="bg-white dark:bg-slate-800 rounded-3xl p-5 border animate-pulse"
+            >
+              <div className="h-5 w-40 rounded bg-slate-200 dark:bg-slate-700 mb-4" />
+
+              <div className="space-y-3">
+                {[...Array(5)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between p-3 rounded-2xl bg-slate-100 dark:bg-slate-700"
+                  >
+                    <div className="space-y-2">
+                      <div className="h-4 w-28 rounded bg-slate-300 dark:bg-slate-600" />
+                      <div className="h-3 w-16 rounded bg-slate-200 dark:bg-slate-500" />
+                    </div>
+
+                    <div className="h-3 w-14 rounded bg-slate-300 dark:bg-slate-600" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -365,7 +435,7 @@ const AdminReports = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-gray-500 dark:text-slate-400">
-                Total Revenue
+                Total Pendapatan
               </p>
               <p className="text-2xl font-black text-queen-gold dark:text-queen-gold mt-2">
                 Rp {Number(stats.totalRevenue).toLocaleString("id-ID")}

@@ -28,6 +28,9 @@ const initialForm = {
 const Customers = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [customers, setCustomers] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const itemsPerPageOptions = [5, 10, 20, 50];
   const [loading, setLoading] = useState(true);
 
   const [openModal, setOpenModal] = useState(false);
@@ -67,6 +70,20 @@ const Customers = () => {
       );
     });
   }, [customers, searchTerm]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredCustomers.length / itemsPerPage)
+  );
+
+  const paginatedCustomers = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredCustomers.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredCustomers, currentPage, itemsPerPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, customers.length, itemsPerPage]);
 
   const handleOpenCreate = () => {
     setEditingId(null);
@@ -175,6 +192,63 @@ const Customers = () => {
         </div>
       </div>
 
+      <div className="flex flex-col gap-3 text-xs text-gray-500">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-xs text-gray-500">
+          {/* INFO */}
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2">
+            <div className="flex flex-col leading-tight">
+              <span>
+                Total pelanggan:{" "}
+                <span className="font-bold text-slate-800 dark:text-white">
+                  {filteredCustomers.length}
+                </span>
+              </span>
+            </div>
+
+            <label className="flex items-center gap-2">
+              <span>Limit</span>
+
+              <select
+                value={itemsPerPage}
+                onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                className="rounded-lg border bg-white dark:bg-slate-900 px-2 py-1 text-xs text-slate-700 dark:text-white outline-none"
+              >
+                {itemsPerPageOptions.map((limit) => (
+                  <option key={limit} value={limit}>
+                    {limit}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          {/* PAGINATION */}
+          <div className="flex items-center justify-between gap-2 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-2">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Prev
+            </button>
+
+            <span className="flex-1 text-center font-semibold text-slate-700 dark:text-white">
+              {currentPage} / {totalPages}
+            </span>
+
+            <button
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+              }
+              disabled={currentPage >= totalPages}
+              className="px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* DESKTOP TABLE */}
       <div className="hidden lg:block bg-white dark:bg-slate-800 rounded-3xl border overflow-hidden">
         <div className="max-h-[350px] overflow-y-auto">
@@ -207,7 +281,7 @@ const Customers = () => {
                   </td>
                 </tr>
               ) : (
-                filteredCustomers.map((cust) => (
+                paginatedCustomers.map((cust) => (
                   <tr key={cust.id_customer} className="border-t">
                     <td className="px-6 py-5 font-semibold dark:text-white capitalize">
                       {cust.nama}
@@ -249,7 +323,7 @@ const Customers = () => {
         </div>
       </div>
 
-      {/* MOBILE (UPDATED SaaS CARD STYLE) */}
+      {/* MOBILE */}
       <div className="lg:hidden space-y-4">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-10 text-slate-400">
@@ -261,10 +335,10 @@ const Customers = () => {
             Data tidak ditemukan
           </div>
         ) : (
-          filteredCustomers.map((cust) => (
+          paginatedCustomers.map((cust) => (
             <div
               key={cust.id_customer}
-              className="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-sm"
+              className="bg-white dark:bg-slate-800 rounded-3xl p-4 shadow-sm border border-slate-100 dark:border-slate-700"
             >
               {/* HEADER */}
               <div className="flex justify-between gap-3">

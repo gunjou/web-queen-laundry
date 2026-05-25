@@ -18,6 +18,9 @@ const Services = () => {
 
   const [tab, setTab] = useState("semua");
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const itemsPerPageOptions = [5, 10, 20, 50];
 
   const [openModal, setOpenModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -59,6 +62,20 @@ const Services = () => {
       return matchTab && matchSearch;
     });
   }, [services, tab, search]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredServices.length / itemsPerPage)
+  );
+
+  const paginatedServices = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredServices.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredServices, currentPage, itemsPerPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, tab, services.length, itemsPerPage]);
 
   /* =========================
      DELETE
@@ -145,7 +162,7 @@ const Services = () => {
 
   return (
     <div className="space-y-6 pb-24 lg:pb-10">
-      {/* ================= HEADER (SAMA DENGAN PAYMENTS STYLE) ================= */}
+      {/* ================= HEADER ================= */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-queen-navy dark:text-white">
@@ -181,25 +198,80 @@ const Services = () => {
       </div>
 
       {/* ================= TAB ================= */}
-      <div className="flex gap-2 overflow-x-auto">
-        {tabs.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`px-4 py-2 rounded-full text-xs font-bold transition ${
-              tab === t.key
-                ? "bg-queen-navy text-white"
-                : "bg-slate-100 dark:bg-slate-800 text-slate-500"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between text-xs text-gray-500">
+        <div className="flex gap-2 overflow-x-auto pb-2 lg:pb-0">
+          {tabs.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`px-4 py-2 rounded-full text-xs font-bold transition ${
+                tab === t.key
+                  ? "bg-queen-navy text-white"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-xs text-gray-500">
+          {/* INFO */}
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2">
+            <span>
+              Total layanan:{" "}
+              <span className="font-bold text-slate-800 dark:text-white">
+                {filteredServices.length}
+              </span>
+            </span>
+
+            <label className="flex items-center gap-2">
+              <span>Limit</span>
+
+              <select
+                value={itemsPerPage}
+                onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                className="rounded-lg border bg-white dark:bg-slate-900 px-2 py-1 text-xs text-slate-700 dark:text-white outline-none"
+              >
+                {itemsPerPageOptions.map((limit) => (
+                  <option key={limit} value={limit}>
+                    {limit}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          {/* PAGINATION */}
+          <div className="flex items-center justify-between gap-2 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-2">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Prev
+            </button>
+
+            <span className="flex-1 text-center font-semibold text-slate-700 dark:text-white">
+              {currentPage} / {totalPages}
+            </span>
+
+            <button
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+              }
+              disabled={currentPage >= totalPages}
+              className="px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* ================= TABLE DESKTOP ================= */}
       <div className="hidden lg:block bg-white dark:bg-slate-800 rounded-3xl border overflow-hidden">
-        <div className="max-h-[420px] overflow-y-auto">
+        <div className="max-h-[350px] overflow-y-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 bg-gray-50 dark:bg-slate-900 text-xs uppercase text-gray-400">
               <tr>
@@ -229,7 +301,7 @@ const Services = () => {
                   </td>
                 </tr>
               ) : (
-                filteredServices.map((s) => (
+                paginatedServices.map((s) => (
                   <tr key={s.id_service} className="border-t">
                     <td className="px-6 py-5 font-semibold dark:text-white">
                       {s.nama}
@@ -271,22 +343,25 @@ const Services = () => {
       {/* ================= MOBILE ================= */}
       <div className="lg:hidden space-y-4">
         {loading ? (
-          <div className="text-center py-10">Loading...</div>
+          <div className="flex flex-col items-center justify-center py-10 text-slate-400">
+            <div className="w-8 h-8 border-4 border-slate-200 border-t-queen-navy rounded-full animate-spin" />
+            <p className="text-sm mt-2">Memuat data layanan...</p>
+          </div>
         ) : filteredServices.length === 0 ? (
           <div className="text-center py-10">Data tidak ditemukan</div>
         ) : (
-          filteredServices.map((s) => (
+          paginatedServices.map((s) => (
             <div
               key={s.id_service}
-              className="bg-white dark:bg-slate-800 rounded-3xl p-5 border"
+              className="bg-white dark:bg-slate-800 rounded-3xl p-4 shadow-sm border border-slate-100 dark:border-slate-700"
             >
               <div className="flex justify-between">
                 <div>
-                  <h3 className="font-bold">{s.nama}</h3>
+                  <h3 className="font-bold dark:text-white">{s.nama}</h3>
                   <p className="text-xs uppercase text-gray-400">{s.tipe}</p>
                 </div>
 
-                <p className="font-bold text-queen-navy">
+                <p className="font-bold text-queen-navy dark:text-gray-400">
                   Rp {Number(s.harga).toLocaleString("id-ID")}
                 </p>
               </div>

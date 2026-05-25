@@ -26,7 +26,9 @@ const OrderList = () => {
   const [orders, setOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusTab, setStatusTab] = useState("SEMUA");
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const itemsPerPageOptions = [5, 10, 20, 50];
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(true);
 
@@ -85,6 +87,17 @@ const OrderList = () => {
     return `https://wa.me/${cleaned}`;
   };
 
+  const formatDate = (value) => {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
       const keyword = searchTerm.toLowerCase();
@@ -100,6 +113,20 @@ const OrderList = () => {
       return matchSearch && matchStatus;
     });
   }, [orders, searchTerm, statusTab]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredOrders.length / itemsPerPage)
+  );
+
+  const paginatedOrders = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredOrders.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredOrders, currentPage, itemsPerPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusTab, orders.length, itemsPerPage]);
 
   const handleSubmitOrder = async (payload) => {
     if (!editingOrder) return;
@@ -218,43 +245,101 @@ const OrderList = () => {
       </div>
 
       {/* FILTER STATUS */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {statusTabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setStatusTab(tab)}
-            className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
-              statusTab === tab
-                ? "bg-queen-navy text-white"
-                : "bg-gray-100 dark:bg-slate-800 text-gray-500"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {statusTabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setStatusTab(tab)}
+              className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
+                statusTab === tab
+                  ? "bg-queen-navy text-white"
+                  : "bg-gray-100 dark:bg-slate-800 text-gray-500"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-xs text-gray-500">
+          {/* INFO */}
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2">
+            <span>
+              Total order:{" "}
+              <span className="font-bold text-slate-800 dark:text-white">
+                {filteredOrders.length}
+              </span>
+            </span>
+
+            <label className="flex items-center gap-2">
+              <span>Limit</span>
+
+              <select
+                value={itemsPerPage}
+                onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                className="rounded-lg border bg-white dark:bg-slate-900 px-2 py-1 text-xs text-slate-700 dark:text-white outline-none"
+              >
+                {itemsPerPageOptions.map((limit) => (
+                  <option key={limit} value={limit}>
+                    {limit}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          {/* PAGINATION */}
+          <div className="flex items-center justify-between gap-2 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-2">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Prev
+            </button>
+
+            <span className="flex-1 text-center font-semibold text-slate-700 dark:text-white">
+              {currentPage} / {totalPages}
+            </span>
+
+            <button
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+              }
+              disabled={currentPage >= totalPages}
+              className="px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* DESKTOP */}
       <div className="hidden lg:block bg-white dark:bg-slate-800 rounded-3xl border overflow-hidden">
-        <div className="max-h-[300px] overflow-y-auto">
-          <table className="w-full text-xs">
-            <thead className="sticky top-0 bg-gray-50 dark:bg-slate-900 text-xs uppercase text-gray-400">
+        <div className="max-h-[350px] overflow-y-auto">
+          <table className="w-full text-[11px] leading-5">
+            <thead className="sticky top-0 bg-gray-50 dark:bg-slate-900 text-[10px] uppercase text-gray-400">
               <tr>
-                <th className="px-3 py-2">Invoice</th>
-                <th className="px-3 py-2">Customer</th>
-                <th className="px-3 py-2">Layanan</th>
-                <th className="px-3 py-2">Berat</th>
-                <th className="px-3 py-2">Total</th>
-                <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2">Bayar</th>
-                <th className="px-3 py-2 text-right">Aksi</th>
+                <th className="px-2 py-2 text-left">Invoice</th>
+                <th className="px-2 py-2 text-left">Customer</th>
+                <th className="px-2 py-2 text-left">Layanan</th>
+                <th className="px-2 py-2 text-left">Type</th>
+                <th className="px-2 py-2 text-left">Berat</th>
+                <th className="px-2 py-2 text-left">Ongkir</th>
+                <th className="px-2 py-2 text-left">Total</th>
+                <th className="px-2 py-2 text-left">Estimasi</th>
+                <th className="px-2 py-2 text-left">Status</th>
+                <th className="px-2 py-2 text-left">Bayar</th>
+                <th className="px-2 py-2 text-right">Aksi</th>
               </tr>
             </thead>
 
             <tbody>
               {tableLoading ? (
                 <tr>
-                  <td colSpan={8} className="px-3 py-10 text-center">
+                  <td colSpan={11} className="px-2 py-8 text-center">
                     <div className="flex flex-col items-center justify-center gap-3 text-slate-400">
                       <div className="w-8 h-8 border-4 border-slate-200 border-t-queen-navy rounded-full animate-spin"></div>
                       <p className="text-sm font-medium">
@@ -266,14 +351,14 @@ const OrderList = () => {
               ) : filteredOrders.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={8}
-                    className="px-3 py-10 text-center text-gray-400"
+                    colSpan={11}
+                    className="px-2 py-8 text-center text-gray-400"
                   >
                     Data tidak ditemukan
                   </td>
                 </tr>
               ) : (
-                filteredOrders.map((order) => {
+                paginatedOrders.map((order) => {
                   const customerPhone =
                     customerMap[order.customer?.trim().toLowerCase()];
 
@@ -282,35 +367,46 @@ const OrderList = () => {
                       key={order.id_order}
                       className="border-t hover:bg-slate-50 dark:hover:bg-slate-700/30"
                     >
-                      <td className="px-6 py-5 font-bold text-queen-gold">
+                      <td className="px-2 py-3 font-semibold text-queen-gold">
                         {order.kode_invoice}
                       </td>
 
-                      <td className="px-6 py-5 font-semibold dark:text-white capitalize">
+                      <td className="px-2 py-3 font-medium dark:text-white capitalize">
                         {order.customer}
                       </td>
 
-                      <td className="px-6 py-5 dark:text-white">
+                      <td className="px-2 py-3 dark:text-white">
                         {order.service}
                       </td>
+                      <td className="px-2 py-3 dark:text-white capitalize">
+                        {order.catatan}
+                      </td>
 
-                      <td className="px-6 py-5 text-gray-500">
+                      <td className="px-2 py-3 text-gray-500">
                         <span className="flex items-center gap-1">
                           {order.berat} kg
                         </span>
                       </td>
 
-                      <td className="px-6 py-5 font-bold dark:text-white">
+                      <td className="px-2 py-3 dark:text-white capitalize">
+                        {order.ongkir}
+                      </td>
+
+                      <td className="px-2 py-3 font-semibold dark:text-white">
                         Rp {Number(order.harga_final).toLocaleString("id-ID")}
                       </td>
 
-                      <td className="px-6 py-5">
+                      <td className="px-2 py-3 dark:text-white">
+                        {formatDate(order.estimasi_selesai)}
+                      </td>
+
+                      <td className="px-2 py-3">
                         <select
                           value={order.order_status}
                           onChange={(e) =>
                             handleStatusChange(order.id_order, e.target.value)
                           }
-                          className={`px-3 py-2 rounded-xl text-xs font-bold outline-none ${getStatusStyle(
+                          className={`px-2 py-1 rounded-xl text-[10px] font-bold outline-none ${getStatusStyle(
                             order.order_status
                           )}`}
                         >
@@ -321,9 +417,9 @@ const OrderList = () => {
                         </select>
                       </td>
 
-                      <td className="px-6 py-5">
+                      <td className="px-2 py-3">
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-bold ${
+                          className={`px-2 py-1 rounded-full text-[10px] font-bold ${
                             order.payment_status === "SUDAH_BAYAR"
                               ? "bg-green-100 text-green-700"
                               : "bg-red-100 text-red-700"
@@ -335,18 +431,8 @@ const OrderList = () => {
                         </span>
                       </td>
 
-                      <td className="px-6 py-5 text-right">
-                        <div className="flex justify-end gap-2">
-                          {/* <button
-                          onClick={() => {
-                            setEditingOrder(order);
-                            setIsModalOpen(true);
-                          }}
-                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-xl transition-colors"
-                          title="Edit"
-                        >
-                          <Pencil size={18} />
-                        </button> */}
+                      <td className="px-2 py-3 text-right">
+                        <div className="flex justify-end gap-1">
                           <a
                             href={getWhatsappLink(customerPhone)}
                             target="_blank"
@@ -391,33 +477,33 @@ const OrderList = () => {
             Data tidak ditemukan
           </div>
         ) : (
-          filteredOrders.map((order) => {
+          paginatedOrders.map((order) => {
             const customerPhone =
               customerMap[order.customer?.trim().toLowerCase()];
 
             return (
               <div
                 key={order.id_order}
-                className="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-sm border border-slate-100 dark:border-slate-700"
+                className="bg-white dark:bg-slate-800 rounded-3xl p-4 shadow-sm border border-slate-100 dark:border-slate-700"
               >
                 {/* HEADER */}
                 <div className="flex justify-between gap-3">
                   <div>
-                    <p className="text-xs font-bold text-queen-gold">
+                    <p className="text-[11px] font-bold text-queen-gold">
                       {order.kode_invoice}
                     </p>
 
-                    <h3 className="mt-1 font-black text-slate-900 dark:text-white">
+                    <h3 className="mt-1 font-bold text-slate-900 dark:text-white text-sm">
                       {order.customer}
                     </h3>
 
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 mt-1">
                       {order.service}
                     </p>
                   </div>
 
                   <span
-                    className={`px-3 py-1 rounded-full text-[10px] font-bold h-fit ${getStatusStyle(
+                    className={`px-2 py-1 rounded-full text-[10px] font-bold h-fit ${getStatusStyle(
                       order.order_status
                     )}`}
                   >
@@ -426,15 +512,23 @@ const OrderList = () => {
                 </div>
 
                 {/* INFO */}
-                <div className="mt-4 flex justify-between text-sm">
-                  <p className="text-gray-500">{order.berat} kg</p>
-                  <p className="font-black text-slate-900 dark:text-white">
-                    Rp {Number(order.harga_final).toLocaleString("id-ID")}
-                  </p>
+                <div className="mt-3 grid gap-2 text-xs">
+                  <div className="flex justify-between">
+                    <p className="text-gray-500">{order.berat} kg</p>
+                    <p className="font-semibold text-slate-900 dark:text-white">
+                      Rp {Number(order.harga_final).toLocaleString("id-ID")}
+                    </p>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <span className="text-gray-500">Estimasi selesai</span>
+                    <span className="font-semibold text-slate-900 dark:text-white">
+                      {formatDate(order.estimasi_selesai)}
+                    </span>
+                  </div>
                 </div>
 
                 {/* ACTIONS (ICON ONLY) */}
-                <div className="mt-4 flex justify-end gap-2">
+                <div className="mt-3 flex justify-end gap-2">
                   {/* WHATSAPP (NEW) */}
                   <a
                     href={getWhatsappLink(customerPhone)}
