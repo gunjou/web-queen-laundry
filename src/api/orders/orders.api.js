@@ -12,8 +12,24 @@ const getAuthHeaders = () => {
 // ==============================
 // GET ALL ORDERS
 // ==============================
-export const getOrders = async () => {
-  const res = await fetch(`${API_BASE_URL}/orders`, {
+// ==============================
+// GET ALL ORDERS
+// ==============================
+export const getOrders = async ({
+  page = 1,
+  limit = 10,
+  search = "",
+  status = "",
+} = {}) => {
+  const params = new URLSearchParams({
+    page,
+    limit,
+  });
+
+  if (search) params.append("search", search);
+  if (status) params.append("status", status);
+
+  const res = await fetch(`${API_BASE_URL}/orders?${params.toString()}`, {
     headers: getAuthHeaders(),
   });
 
@@ -43,10 +59,18 @@ export const getOrderById = async (id) => {
 // CREATE ORDER
 // ==============================
 export const createOrder = async (payload) => {
+  // Format estimasi_selesai: "YYYY-MM-DD" → "YYYY-MM-DD 17:00:00"
+  const formattedPayload = {
+    ...payload,
+    estimasi_selesai: payload.estimasi_selesai
+      ? `${payload.estimasi_selesai} 17:00:00`
+      : "",
+  };
+
   const res = await fetch(`${API_BASE_URL}/orders`, {
     method: "POST",
     headers: getAuthHeaders(),
-    body: JSON.stringify(payload),
+    body: JSON.stringify(formattedPayload),
   });
 
   if (!res.ok) {
@@ -56,7 +80,6 @@ export const createOrder = async (payload) => {
 
   return await res.json();
 };
-
 // ==============================
 // UPDATE ORDER
 // ==============================
@@ -127,7 +150,7 @@ export const getOrderSummary = async () => {
 // GET ORDERS BELUM BAYAR
 // ==============================
 export const getUnpaidOrders = async () => {
-  const res = await fetch(`${API_BASE_URL}/orders`, {
+  const res = await fetch(`${API_BASE_URL}/orders?page=1&limit=1000`, {
     headers: getAuthHeaders(),
   });
 
@@ -135,7 +158,9 @@ export const getUnpaidOrders = async () => {
     throw new Error("Gagal mengambil data order");
   }
 
-  const data = await res.json();
+  const response = await res.json();
 
-  return data.filter((order) => order.payment_status === "BELUM_BAYAR");
+  return (response.data || []).filter(
+    (order) => order.payment_status === "BELUM_BAYAR"
+  );
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -20,9 +20,12 @@ const RecentOrders = () => {
       try {
         setLoading(true);
 
-        const res = await getOrders();
+        const res = await getOrders({
+          page: 1,
+          limit: 5,
+        });
 
-        setOrders(Array.isArray(res) ? res : []);
+        setOrders(res?.data || []);
       } catch (error) {
         console.error(error);
         setOrders([]);
@@ -33,10 +36,6 @@ const RecentOrders = () => {
 
     fetchRecentOrders();
   }, []);
-
-  const recentOrders = useMemo(() => {
-    return [...orders].sort((a, b) => b.id_order - a.id_order).slice(0, 3);
-  }, [orders]);
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden">
@@ -60,28 +59,28 @@ const RecentOrders = () => {
           <div className="w-7 h-7 border-4 border-slate-200 border-t-queen-navy rounded-full animate-spin" />
           <p className="text-sm mt-2">Memuat order...</p>
         </div>
-      ) : recentOrders.length === 0 ? (
+      ) : orders.length === 0 ? (
         <div className="p-8 text-center text-sm text-slate-400">
           Belum ada order
         </div>
       ) : (
         <>
           {/* DESKTOP */}
-          <div className="hidden md:block">
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm">
               <tbody>
-                {recentOrders.map((o) => (
+                {orders.map((o) => (
                   <tr
                     key={o.id_order}
-                    className="hover:bg-gray-50 dark:hover:bg-slate-700/40 transition"
+                    className="hover:bg-gray-50 dark:hover:bg-slate-700/40 transition border-b border-gray-100 dark:border-slate-700"
                   >
                     <td className="p-4 font-semibold text-queen-gold">
                       {o.kode_invoice}
                     </td>
 
-                    <td className="dark:text-white">{o.customer}</td>
+                    <td className="p-4 dark:text-white">{o.customer}</td>
 
-                    <td>
+                    <td className="p-4">
                       <span
                         className={`px-2 py-1 text-xs rounded-full font-semibold ${
                           statusMap[o.order_status] ||
@@ -93,7 +92,7 @@ const RecentOrders = () => {
                     </td>
 
                     <td
-                      className={`font-semibold ${
+                      className={`p-4 font-semibold ${
                         o.payment_status === "SUDAH_BAYAR"
                           ? "text-green-500"
                           : "text-red-500"
@@ -111,7 +110,7 @@ const RecentOrders = () => {
 
           {/* MOBILE */}
           <div className="md:hidden space-y-3 p-4">
-            {recentOrders.map((o) => (
+            {orders.map((o) => (
               <div
                 key={o.id_order}
                 className="bg-gray-50 dark:bg-slate-700/40 rounded-xl p-4 border border-slate-100 dark:border-slate-700"

@@ -338,6 +338,7 @@ const OrderModal = ({ isOpen, onClose, onSuccess }) => {
         service: selectedService,
         total: totalHarga,
         metode: paymentMethod,
+        estimasi_selesai: form.estimasi_selesai,
       };
 
       setReceiptData(receipt);

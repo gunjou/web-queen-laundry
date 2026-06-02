@@ -36,16 +36,41 @@ const OrderList = () => {
   const [editingOrder, setEditingOrder] = useState(null);
   const [customerMap, setCustomerMap] = useState({});
 
+  // NEW: pagination dari backend
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total_data: 0,
+    total_page: 1,
+  });
+
   useEffect(() => {
     fetchOrders();
     fetchCustomers();
   }, []);
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (page = 1, limit = itemsPerPage) => {
     try {
       setTableLoading(true);
-      const data = await getOrders();
-      setOrders(Array.isArray(data) ? data : []);
+
+      const response = await getOrders({
+        page,
+        limit,
+      });
+
+      const orderData = response?.data || [];
+
+      setOrders(orderData);
+
+      // NEW: pakai pagination dari backend
+      setPagination(
+        response?.pagination || {
+          page,
+          limit,
+          total_data: 0,
+          total_page: 1,
+        }
+      );
     } catch (err) {
       Swal.fire("Error", err.message || "Gagal mengambil data", "error");
     } finally {
@@ -114,11 +139,6 @@ const OrderList = () => {
     });
   }, [orders, searchTerm, statusTab]);
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredOrders.length / itemsPerPage)
-  );
-
   const paginatedOrders = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredOrders.slice(startIndex, startIndex + itemsPerPage);
@@ -127,6 +147,11 @@ const OrderList = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusTab, orders.length, itemsPerPage]);
+
+  // FIX: fetch ulang saat pagination berubah
+  useEffect(() => {
+    fetchOrders(currentPage, itemsPerPage);
+  }, [currentPage, itemsPerPage]);
 
   const handleSubmitOrder = async (payload) => {
     if (!editingOrder) return;
@@ -268,7 +293,7 @@ const OrderList = () => {
             <span>
               Total order:{" "}
               <span className="font-bold text-slate-800 dark:text-white">
-                {filteredOrders.length}
+                {pagination.total_data}
               </span>
             </span>
 
@@ -293,21 +318,23 @@ const OrderList = () => {
           <div className="flex items-center justify-between gap-2 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-2">
             <button
               onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
+              disabled={pagination.page === 1}
               className="px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Prev
             </button>
 
             <span className="flex-1 text-center font-semibold text-slate-700 dark:text-white">
-              {currentPage} / {totalPages}
+              {pagination.page} / {pagination.total_page}
             </span>
 
             <button
               onClick={() =>
-                setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                setCurrentPage((prev) =>
+                  Math.min(pagination.total_page, prev + 1)
+                )
               }
-              disabled={currentPage >= totalPages}
+              disabled={pagination.page >= pagination.total_page}
               className="px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
@@ -486,7 +513,6 @@ const OrderList = () => {
                 key={order.id_order}
                 className="bg-white dark:bg-slate-800 rounded-3xl p-4 shadow-sm border border-slate-100 dark:border-slate-700"
               >
-                {/* HEADER */}
                 <div className="flex justify-between gap-3">
                   <div>
                     <p className="text-[11px] font-bold text-queen-gold">
@@ -511,7 +537,6 @@ const OrderList = () => {
                   </span>
                 </div>
 
-                {/* INFO */}
                 <div className="mt-3 grid gap-2 text-xs">
                   <div className="flex justify-between">
                     <p className="text-gray-500">{order.berat} kg</p>
@@ -527,9 +552,7 @@ const OrderList = () => {
                   </div>
                 </div>
 
-                {/* ACTIONS (ICON ONLY) */}
                 <div className="mt-3 flex justify-end gap-2">
-                  {/* WHATSAPP (NEW) */}
                   <a
                     href={getWhatsappLink(customerPhone)}
                     target="_blank"
@@ -543,19 +566,7 @@ const OrderList = () => {
                   >
                     <MessageCircle size={18} />
                   </a>
-                  {/* EDIT */}
-                  {/* <button
-                  onClick={() => {
-                    setEditingOrder(order);
-                    setIsModalOpen(true);
-                  }}
-                  className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-700 text-blue-500 active:scale-95 transition"
-                  title="Edit"
-                >
-                  <Pencil size={18} />
-                </button> */}
 
-                  {/* DELETE */}
                   <button
                     onClick={() => handleDelete(order.id_order)}
                     className="p-3 rounded-2xl bg-red-100 text-red-600 active:scale-95 transition"
@@ -584,7 +595,6 @@ const OrderList = () => {
       </div>
 
       {/* MODAL */}
-      {/* CREATE */}
       {isModalOpen && !editingOrder && (
         <OrderModal
           isOpen={isModalOpen}
@@ -603,7 +613,6 @@ const OrderList = () => {
         />
       )}
 
-      {/* EDIT */}
       {isModalOpen && editingOrder && (
         <OrderEditModal
           isOpen={isModalOpen}

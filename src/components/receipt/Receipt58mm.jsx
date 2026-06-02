@@ -72,6 +72,15 @@ const Receipt58mm = ({ data }) => {
           <span>{data.metode || "-"}</span>
         </div>
 
+        {data.estimasi_selesai && (
+          <div className="row">
+            <span>Est. Selesai</span>
+            <span>
+              {new Date(data.estimasi_selesai).toLocaleDateString("id-ID")}
+            </span>
+          </div>
+        )}
+
         <div className="line" />
 
         <div className="center text">Terima kasih telah menggunakan</div>
@@ -144,6 +153,15 @@ const Receipt58mm = ({ data }) => {
           <span>Pembayaran</span>
           <span>{data.metode || "Belum Dibayar"}</span>
         </div>
+
+        {data.estimasi_selesai && (
+          <div className="row">
+            <span>Est. Selesai</span>
+            <span>
+              {new Date(data.estimasi_selesai).toLocaleDateString("id-ID")}
+            </span>
+          </div>
+        )}
 
         <div className="line" />
 

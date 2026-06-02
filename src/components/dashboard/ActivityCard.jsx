@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ChevronRight, Wallet } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -13,9 +13,13 @@ const ActivityCard = () => {
       try {
         setLoading(true);
 
-        const res = await getOrders();
+        // ambil langsung 3 data terbaru dari backend
+        const res = await getOrders({
+          page: 1,
+          limit: 3,
+        });
 
-        setActivities(Array.isArray(res) ? res : []);
+        setActivities(res?.data || []);
       } catch (error) {
         console.error(error);
         setActivities([]);
@@ -27,9 +31,7 @@ const ActivityCard = () => {
     fetchActivities();
   }, []);
 
-  const recentActivities = useMemo(() => {
-    return [...activities].sort((a, b) => b.id_order - a.id_order).slice(0, 3);
-  }, [activities]);
+  const recentActivities = activities;
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm">
@@ -38,7 +40,7 @@ const ActivityCard = () => {
         <h3 className="font-bold text-queen-navy dark:text-white">Aktivitas</h3>
 
         <Link
-          to="/orders"
+          to="/payments"
           className="text-xs font-semibold text-queen-navy dark:text-white flex items-center gap-1 hover:opacity-80 transition"
         >
           Lihat Semua
